@@ -1,43 +1,46 @@
-default: test
+#  Makefile template for Static library. 
+# 1. Compile every *.cpp in the folder 
+# 2. All obj files under obj folder
+# 3. static library .a at lib folder
+# 4. run 'make dirmake' before calling 'make'
 
+CC = g++
+OUT_FILE_NAME = gdstk.a
+
+CFLAGS= -Wall -Wextra -Wshadow -Wvla -Wformat -Wno-missing-field-initializers -Wno-missing-braces
+
+INC = -I./include -I./external -I./external/qhull/src
+
+SRC_DIR=./src
+OBJ_DIR=./obj
+OUT_DIR=./lib
+
+#SRCS := $(wildcard src/*.cpp)
+SRCS := $(shell find $(SRC_DIR) -name *.cpp)
+OBJS := $(subst $(SRC_DIR)/,$(OBJ_DIR)/,$(addsuffix .o,$(basename $(SRCS))))
+
+# Enumerating of every *.cpp as *.o and using that as dependency.	
+# filter list of .c files in a directory.
+# FILES =dump_l.c \
+#	kter.c \
+#
+# $(OUT_FILE_NAME): $(patsubst %.c,$(OBJ_DIR)/%.o,$(wildcard $(FILES))) 
+
+
+# Enumerating of every *.cpp as *.o and using that as dependency
+# $(OUT_FILE_NAME): $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(wildcard *.cpp))
+$(OUT_FILE_NAME): $(OBJS)
+	ar -r -o $(OUT_DIR)/$@ $^
+
+#Compiling every *.cpp to *.o
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp dirmake
+	$(CC) -c $(INC) $(CFLAGS) -o $@  $<
+	
+dirmake:
+	@mkdir -p $(OUT_DIR)
+	@mkdir -p $(OBJ_DIR)
+	
 clean:
-	-rm -rf build dist gdstk.egg-info src/gdstk.egg-info
-	-rm -rf docs/_build docs/geometry/* docs/library/*
-	-rm -rf *.svg
-	-rm -rf *.gds
-	-rm -rf *.oas
-	-rm -rf *.out
-	-rm -rf docs/*.gds
-	-rm -rf docs/*.svg
-	-rm -rf docs/*/*.svg
+	rm -f $(OBJ_DIR)/*.o $(OUT_DIR)/$(OUT_FILE_NAME) Makefile.bak
 
-all: test docs examples
-
-lib:
-	cmake -S . -B build -DCMAKE_INSTALL_PREFIX=build/install
-	cmake --build build --target install
-
-module:
-	python setup.py build $(PYTHON_RELEASE)
-
-docs: module
-	sphinx-build docs docs/_build
-
-test: module
-	pytest
-
-examples: lib
-	cmake --build build --target examples
-	cmake --build build --target test
-
-%.out: %.cpp lib
-	$(CXX) $(CXXFLAGS) -o $@ $< $(shell pkg-config --with-path=build --cflags gdstk) $(shell pkg-config --with-path=build --libs gdstk)
-
-%.run: %.out
-	-./$<
-
-%.grind: %.out
-	valgrind --undef-value-errors=no --leak-check=full --error-exitcode=1 --quiet ./$<
-
-.PHONY: default clean all lib module docs test examples
-.PRECIOUS: %.out
+rebuild: clean build
