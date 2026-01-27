@@ -71,82 +71,71 @@ void cell_set_name(Cell* cell, const char* name) {
     }
 }
 
+// Element count functions
 size_t cell_polygon_count(const Cell* cell) {
-    if (cell) {
-        const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
-        return (size_t)cpp_cell->polygon_array.count;
-    }
-    return 0;
-}
-
-size_t cell_reference_count(const Cell* cell) {
-    if (cell) {
-        const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
-        return (size_t)cpp_cell->reference_array.count;
-    }
-    return 0;
+    if (!cell) return 0;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    return cpp_cell->polygon_array.count;
 }
 
 size_t cell_label_count(const Cell* cell) {
-    if (cell) {
-        const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
-        return (size_t)cpp_cell->label_array.count;
-    }
-    return 0;
+    if (!cell) return 0;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    return cpp_cell->label_array.count;
 }
 
-void cell_add_polygon(Cell* cell, Polygon* polygon) {
-    if (cell && polygon) {
-        gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
-        gdstk::Polygon* cpp_polygon = reinterpret_cast<gdstk::Polygon*>(polygon);
-        cpp_cell->polygon_array.append(cpp_polygon);
-    }
+size_t cell_reference_count(const Cell* cell) {
+    if (!cell) return 0;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    return cpp_cell->reference_array.count;
 }
 
-void cell_add_label(Cell* cell, Label* label) {
-    if (cell && label) {
-        gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
-        gdstk::Label* cpp_label = reinterpret_cast<gdstk::Label*>(label);
-        cpp_cell->label_array.append(cpp_label);
-    }
+size_t cell_flexpath_count(const Cell* cell) {
+    if (!cell) return 0;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    return cpp_cell->flexpath_array.count;
 }
 
-void cell_add_reference(Cell* cell, Reference* reference) {
-    if (cell && reference) {
-        gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
-        gdstk::Reference* cpp_reference = reinterpret_cast<gdstk::Reference*>(reference);
-        cpp_cell->reference_array.append(cpp_reference);
-    }
+size_t cell_robustpath_count(const Cell* cell) {
+    if (!cell) return 0;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    return cpp_cell->robustpath_array.count;
 }
 
-Polygon* cell_get_polygon(Cell* cell, uint64_t index) {
-    if (cell) {
-        gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
-        if (index < cpp_cell->polygon_array.count) {
-            return reinterpret_cast<Polygon*>(cpp_cell->polygon_array.items[index]);
-        }
-    }
-    return nullptr;
+// Element access functions
+Polygon* cell_get_polygon(const Cell* cell, size_t index) {
+    if (!cell) return nullptr;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    if (index >= cpp_cell->polygon_array.count) return nullptr;
+    return reinterpret_cast<Polygon*>(cpp_cell->polygon_array.items[index]);
 }
 
-Label* cell_get_label(Cell* cell, uint64_t index) {
-    if (cell) {
-        gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
-        if (index < cpp_cell->label_array.count) {
-            return reinterpret_cast<Label*>(cpp_cell->label_array.items[index]);
-        }
-    }
-    return nullptr;
+Label* cell_get_label(const Cell* cell, size_t index) {
+    if (!cell) return nullptr;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    if (index >= cpp_cell->label_array.count) return nullptr;
+    return reinterpret_cast<Label*>(cpp_cell->label_array.items[index]);
 }
 
-Reference* cell_get_reference(Cell* cell, uint64_t index) {
-    if (cell) {
-        gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
-        if (index < cpp_cell->reference_array.count) {
-            return reinterpret_cast<Reference*>(cpp_cell->reference_array.items[index]);
-        }
-    }
-    return nullptr;
+Reference* cell_get_reference(const Cell* cell, size_t index) {
+    if (!cell) return nullptr;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    if (index >= cpp_cell->reference_array.count) return nullptr;
+    return reinterpret_cast<Reference*>(cpp_cell->reference_array.items[index]);
+}
+
+FlexPath* cell_get_flexpath(const Cell* cell, size_t index) {
+    if (!cell) return nullptr;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    if (index >= cpp_cell->flexpath_array.count) return nullptr;
+    return reinterpret_cast<FlexPath*>(cpp_cell->flexpath_array.items[index]);
+}
+
+RobustPath* cell_get_robustpath(const Cell* cell, size_t index) {
+    if (!cell) return nullptr;
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    if (index >= cpp_cell->robustpath_array.count) return nullptr;
+    return reinterpret_cast<RobustPath*>(cpp_cell->robustpath_array.items[index]);
 }
 
 // Copy function
@@ -251,4 +240,40 @@ void cell_flatten(Cell* cell, bool apply_repetitions, Array* removed_references)
         cpp_cell->flatten(apply_repetitions, temp_removed);
         temp_removed.clear();
     }
+}
+
+// Element management functions
+void cell_add_polygon(Cell* cell, Polygon* polygon) {
+    if (!cell || !polygon) return;
+    gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
+    gdstk::Polygon* cpp_polygon = reinterpret_cast<gdstk::Polygon*>(polygon);
+    cpp_cell->polygon_array.append(cpp_polygon);
+}
+
+void cell_add_label(Cell* cell, Label* label) {
+    if (!cell || !label) return;
+    gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
+    gdstk::Label* cpp_label = reinterpret_cast<gdstk::Label*>(label);
+    cpp_cell->label_array.append(cpp_label);
+}
+
+void cell_add_reference(Cell* cell, Reference* reference) {
+    if (!cell || !reference) return;
+    gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
+    gdstk::Reference* cpp_reference = reinterpret_cast<gdstk::Reference*>(reference);
+    cpp_cell->reference_array.append(cpp_reference);
+}
+
+void cell_add_flexpath(Cell* cell, FlexPath* flexpath) {
+    if (!cell || !flexpath) return;
+    gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
+    gdstk::FlexPath* cpp_flexpath = reinterpret_cast<gdstk::FlexPath*>(flexpath);
+    cpp_cell->flexpath_array.append(cpp_flexpath);
+}
+
+void cell_add_robustpath(Cell* cell, RobustPath* robustpath) {
+    if (!cell || !robustpath) return;
+    gdstk::Cell* cpp_cell = reinterpret_cast<gdstk::Cell*>(cell);
+    gdstk::RobustPath* cpp_robustpath = reinterpret_cast<gdstk::RobustPath*>(robustpath);
+    cpp_cell->robustpath_array.append(cpp_robustpath);
 }

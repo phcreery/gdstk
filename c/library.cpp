@@ -20,6 +20,17 @@ extern "C" {
 // Forward declaration of error conversion function (defined in cell.cpp)
 ErrorCode convert_error_code(gdstk::ErrorCode cpp_error);
 
+// Implementation of error code conversion
+ErrorCode convert_error_code(gdstk::ErrorCode cpp_error) {
+    switch (cpp_error) {
+        case gdstk::ErrorCode::NoError: return GDSTK_NO_ERROR;
+        case gdstk::ErrorCode::InsufficientMemory: return GDSTK_INSUFFICIENT_MEMORY;
+        case gdstk::ErrorCode::InvalidFile: return GDSTK_INVALID_FILE;
+        case gdstk::ErrorCode::MissingReference: return GDSTK_MISSING_REFERENCE;
+        default: return GDSTK_INVALID_FILE;
+    }
+}
+
 // Library functions
 Library* library_new(const char* name, double unit, double precision) {
     gdstk::Library* cpp_library = new gdstk::Library();
@@ -164,7 +175,7 @@ ErrorCode library_write_oas(const Library* library, const char* filename,
                            double standard_properties, double validation, 
                            bool check_duplicates) {
     if (library && filename) {
-        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        gdstk::Library* cpp_library = const_cast<gdstk::Library*>(reinterpret_cast<const gdstk::Library*>(library));
         
         // Build config flags
         uint16_t config_flags = 0;

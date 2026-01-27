@@ -37,6 +37,9 @@ void cell_free(Cell* cell);
 void cell_clear(Cell* cell);
 void cell_print(const Cell* cell, bool all);
 
+// Cell accessors
+const char* cell_name(const Cell* cell);
+
 // Copy function
 Cell* cell_copy(const Cell* cell, const char* new_name, bool deep_copy);
 

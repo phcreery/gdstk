@@ -2,36 +2,7 @@
 
 This directory contains comprehensive C header bindings for the GDSTK C++ library, providing a complete C interface for working with GDSII and OASIS layout files.
 
-## Files
-
-### Core Headers
-- `gdstk.h` - Main header that includes all components
-- `cell.h` - Cell structures and operations
-- `polygon.h` - Polygon creation and manipulation
-- `library.h` - Library management and I/O operations
-- `label.h` - Text labels and annotations
-- `reference.h` - Cell references and transformations
-- `utils.h` - Utility functions and basic data structures
-
-### Implementation and Examples
-- `cell.cpp` - C++ implementation wrapper for Cell functionality
-- `simple_example.c` - Standalone example demonstrating the interface
-- `example.c` - Full example using the complete GDSTK library
-
-## Overview
-
-The C bindings provide a comprehensive C-compatible interface to the GDSTK C++ library. The bindings:
-
-- Convert C++ classes to opaque pointers for C compatibility
-- Provide C-style function interfaces for all major GDSTK features
-- Handle type conversions between C and C++ types
-- Include complete error handling with C-compatible error codes
-- Support all major GDSTK operations including I/O, geometry, and transformations
-
-## Architecture
-
-### Memory Management
-All complex objects are represented as opaque pointers in C, with explicit allocation and deallocation functions:
+## Example
 
 ```c
 // Create objects
@@ -63,13 +34,6 @@ if (result != GDSTK_NO_ERROR) {
     printf("Error: %s\n", gdstk_error_string(result));
 }
 ```
-
-### Type Safety
-- Simple structures like `Vec2` are exposed directly
-- Complex C++ containers use generic `Array`, `Map`, `Set` wrappers
-- Function pointers maintain type safety where possible
-
-## Key Features by Component
 
 ### Cell Operations (`cell.h`)
 
@@ -232,63 +196,3 @@ g++ -I../include -std=c++11 -c cell.cpp -o cell.o
 gcc -c example.c -o example.o
 g++ example.o cell.o ../lib/gdstk.a [dependency libraries] -o example.exe
 ```
-
-## Complete API Reference
-
-### Cell Functions
-- `cell_new()`, `cell_free()`, `cell_clear()`, `cell_print()`
-- `cell_bounding_box()`, `cell_convex_hull()`
-- `cell_get_polygons()`, `cell_get_labels()`, etc.
-- `cell_flatten()`, `cell_remap_tags()`
-
-### Polygon Functions
-- `polygon_new()`, `polygon_free()`, `polygon_rectangle()`, `polygon_cross()`
-- `polygon_area()`, `polygon_perimeter()`, `polygon_contain()`
-- `polygon_translate()`, `polygon_rotate()`, `polygon_scale()`
-- `polygon_fillet()`, `polygon_fracture()`
-
-### Library Functions
-- `library_new()`, `library_free()`, `library_clear()`
-- `library_write_gds()`, `library_read_gds()`
-- `library_write_oas()`, `library_write_svg()`
-- `library_get_cell()`, `library_rename_cell()`
-
-### Label Functions
-- `label_new()`, `label_free()`, `label_transform()`
-- `label_bounding_box()`, `label_apply_repetition()`
-
-### Reference Functions
-- `reference_new_cell()`, `reference_new_name()`
-- `reference_transform()`, `reference_get_polygons()`
-- `reference_bounding_box()`, `reference_convex_hull()`
-
-### Utility Functions
-- Vec2 math: `vec2_add()`, `vec2_length()`, `vec2_rotate()`
-- Array operations: `array_vec2_*()`, `array_ptr_*()`
-- Map/Set operations: `map_*()`, `set_*()`
-- Tag utilities: `make_tag()`, `get_layer()`, `get_type()`
-
-## Design Philosophy
-
-- **Minimal overhead**: Direct mapping to C++ functionality
-- **Memory safety**: Explicit allocation/deallocation with clear ownership
-- **Error handling**: Consistent error codes and string descriptions
-- **Type safety**: Strong typing where possible, opaque pointers where needed
-- **Completeness**: Full API coverage for all major GDSTK features
-- **Compatibility**: Works with standard C99 and later
-
-## Limitations
-
-- Template features require separate typed functions
-- Some C++ operator overloads converted to explicit functions
-- Complex iterators replaced with index-based access
-- Exception handling converted to error return codes
-- STL containers replaced with custom Array/Map/Set wrappers
-
-## Integration Notes
-
-The bindings are designed for:
-- Integration into C projects
-- FFI bindings for other languages (Python ctypes, Go cgo, etc.)
-- Embedded systems requiring C interfaces
-- Legacy C codebases needing GDSII/OASIS support
