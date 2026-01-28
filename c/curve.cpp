@@ -53,7 +53,56 @@ void curve_copy_from(Curve* curve, const Curve* source) {
     }
 }
 
-// Basic curve building
+// Point append functions (direct point array manipulation)
+void curve_append(Curve* curve, Vec2 point) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        gdstk::Vec2 cpp_point;
+        cpp_point.x = point.x;
+        cpp_point.y = point.y;
+        cpp_curve->append(cpp_point);
+    }
+}
+
+void curve_append_unsafe(Curve* curve, Vec2 point) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        gdstk::Vec2 cpp_point;
+        cpp_point.x = point.x;
+        cpp_point.y = point.y;
+        cpp_curve->append_unsafe(cpp_point);
+    }
+}
+
+void curve_remove(Curve* curve, uint64_t index) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        cpp_curve->remove(index);
+    }
+}
+
+void curve_ensure_slots(Curve* curve, uint64_t free_slots) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        cpp_curve->ensure_slots(free_slots);
+    }
+}
+
+// Basic curve building - single coordinate versions
+void curve_horizontal(Curve* curve, double coord_x, bool relative) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        cpp_curve->horizontal(coord_x, relative);
+    }
+}
+
+void curve_vertical(Curve* curve, double coord_y, bool relative) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        cpp_curve->vertical(coord_y, relative);
+    }
+}
+
 void curve_segment(Curve* curve, Vec2 end_point, bool relative) {
     if (curve) {
         gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
@@ -64,31 +113,37 @@ void curve_segment(Curve* curve, Vec2 end_point, bool relative) {
     }
 }
 
-void curve_segment_to(Curve* curve, Vec2 end_point) {
-    curve_segment(curve, end_point, false);
-}
-
-void curve_segment_by(Curve* curve, Vec2 offset) {
-    curve_segment(curve, offset, true);
-}
-
-// Arc functions
-void curve_arc(Curve* curve, double radius, double initial_angle, double final_angle, 
-              double rotation, bool relative) {
-    if (curve) {
+// Basic curve building - array coordinate versions
+void curve_horizontal_array(Curve* curve, const Array* coord_x, bool relative) {
+    if (curve && coord_x) {
         gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
-        cpp_curve->arc(radius, initial_angle, final_angle, rotation, relative);
+        const gdstk::Array<double>* cpp_coords = reinterpret_cast<const gdstk::Array<double>*>(coord_x);
+        cpp_curve->horizontal(*cpp_coords, relative);
     }
 }
 
-void curve_arc_to(Curve* curve, double radius, double initial_angle, double final_angle, 
-                 double rotation) {
-    curve_arc(curve, radius, initial_angle, final_angle, rotation, false);
+void curve_vertical_array(Curve* curve, const Array* coord_y, bool relative) {
+    if (curve && coord_y) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        const gdstk::Array<double>* cpp_coords = reinterpret_cast<const gdstk::Array<double>*>(coord_y);
+        cpp_curve->vertical(*cpp_coords, relative);
+    }
 }
 
-void curve_arc_by(Curve* curve, double radius, double initial_angle, double final_angle, 
-                 double rotation) {
-    curve_arc(curve, radius, initial_angle, final_angle, rotation, true);
+void curve_segment_array(Curve* curve, const Array* points, bool relative) {
+    if (curve && points) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        const gdstk::Array<gdstk::Vec2>* cpp_points = reinterpret_cast<const gdstk::Array<gdstk::Vec2>*>(points);
+        cpp_curve->segment(*cpp_points, relative);
+    }
+}
+
+// Arc functions (matches C++ API signature: radius_x, radius_y, initial_angle, final_angle, rotation)
+void curve_arc(Curve* curve, double radius_x, double radius_y, double initial_angle, double final_angle, double rotation) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        cpp_curve->arc(radius_x, radius_y, initial_angle, final_angle, rotation);
+    }
 }
 
 // Turn function (convenience for arcs)
@@ -109,59 +164,92 @@ void curve_bezier(Curve* curve, const Array* control_points, bool relative) {
     }
 }
 
-void curve_bezier_to(Curve* curve, const Array* control_points) {
-    curve_bezier(curve, control_points, false);
-}
-
-void curve_bezier_by(Curve* curve, const Array* control_points) {
-    curve_bezier(curve, control_points, true);
-}
-
-// Quadratic Bezier
-void curve_quadratic(Curve* curve, Vec2 control_point, Vec2 end_point, bool relative) {
-    if (curve) {
+// Cubic Bezier (array of points: every 3 points define a section)
+void curve_cubic(Curve* curve, const Array* points, bool relative) {
+    if (curve && points) {
         gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
-        gdstk::Vec2 ctrl_pos;
-        ctrl_pos.x = control_point.x;
-        ctrl_pos.y = control_point.y;
-        gdstk::Vec2 end_pos;
-        end_pos.x = end_point.x;
-        end_pos.y = end_point.y;
-        cpp_curve->quadratic(ctrl_pos, end_pos, relative);
+        const gdstk::Array<gdstk::Vec2>* cpp_points = 
+            reinterpret_cast<const gdstk::Array<gdstk::Vec2>*>(points);
+        cpp_curve->cubic(*cpp_points, relative);
     }
 }
 
-void curve_quadratic_to(Curve* curve, Vec2 control_point, Vec2 end_point) {
-    curve_quadratic(curve, control_point, end_point, false);
-}
-
-void curve_quadratic_by(Curve* curve, Vec2 control_point, Vec2 end_point) {
-    curve_quadratic(curve, control_point, end_point, true);
-}
-
-// Cubic Bezier
-void curve_cubic(Curve* curve, Vec2 control1, Vec2 control2, Vec2 end_point, bool relative) {
-    if (curve) {
+// Cubic smooth Bezier (array of points: every 2 points define a section)
+void curve_cubic_smooth(Curve* curve, const Array* points, bool relative) {
+    if (curve && points) {
         gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
-        gdstk::Vec2 ctrl1_pos;
-        ctrl1_pos.x = control1.x;
-        ctrl1_pos.y = control1.y;
-        gdstk::Vec2 ctrl2_pos;
-        ctrl2_pos.x = control2.x;
-        ctrl2_pos.y = control2.y;
-        gdstk::Vec2 end_pos;
-        end_pos.x = end_point.x;
-        end_pos.y = end_point.y;
-        cpp_curve->cubic(ctrl1_pos, ctrl2_pos, end_pos, relative);
+        const gdstk::Array<gdstk::Vec2>* cpp_points = 
+            reinterpret_cast<const gdstk::Array<gdstk::Vec2>*>(points);
+        cpp_curve->cubic_smooth(*cpp_points, relative);
     }
 }
 
-void curve_cubic_to(Curve* curve, Vec2 control1, Vec2 control2, Vec2 end_point) {
-    curve_cubic(curve, control1, control2, end_point, false);
+// Quadratic Bezier (array of points: every 2 points define a section)
+void curve_quadratic(Curve* curve, const Array* points, bool relative) {
+    if (curve && points) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        const gdstk::Array<gdstk::Vec2>* cpp_points = 
+            reinterpret_cast<const gdstk::Array<gdstk::Vec2>*>(points);
+        cpp_curve->quadratic(*cpp_points, relative);
+    }
 }
 
-void curve_cubic_by(Curve* curve, Vec2 control1, Vec2 control2, Vec2 end_point) {
-    curve_cubic(curve, control1, control2, end_point, true);
+// Quadratic smooth Bezier - single point
+void curve_quadratic_smooth(Curve* curve, Vec2 end_point, bool relative) {
+    if (curve) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        gdstk::Vec2 end_pos;
+        end_pos.x = end_point.x;
+        end_pos.y = end_point.y;
+        cpp_curve->quadratic_smooth(end_pos, relative);
+    }
+}
+
+// Quadratic smooth Bezier - array of points
+void curve_quadratic_smooth_array(Curve* curve, const Array* points, bool relative) {
+    if (curve && points) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        const gdstk::Array<gdstk::Vec2>* cpp_points = 
+            reinterpret_cast<const gdstk::Array<gdstk::Vec2>*>(points);
+        cpp_curve->quadratic_smooth(*cpp_points, relative);
+    }
+}
+
+// Interpolation function
+void curve_interpolation(Curve* curve, const Array* points, double* angles, bool* angle_constraints,
+                        Vec2* tension, double initial_curl, double final_curl, bool cycle, bool relative) {
+    if (curve && points && angles && angle_constraints && tension) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        const gdstk::Array<gdstk::Vec2>* cpp_points = 
+            reinterpret_cast<const gdstk::Array<gdstk::Vec2>*>(points);
+        
+        // Convert Vec2 array to gdstk::Vec2 array for tension
+        gdstk::Vec2* cpp_tension = reinterpret_cast<gdstk::Vec2*>(tension);
+        
+        cpp_curve->interpolation(*cpp_points, angles, angle_constraints, cpp_tension,
+                               initial_curl, final_curl, cycle, relative);
+    }
+}
+
+// Parametric function
+void curve_parametric(Curve* curve, ParametricVec2 curve_function, void* data, bool relative) {
+    if (curve && curve_function) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        // The function pointer types are compatible since they have the same signature
+        gdstk::ParametricVec2 cpp_function = reinterpret_cast<gdstk::ParametricVec2>(curve_function);
+        cpp_curve->parametric(cpp_function, data, relative);
+    }
+}
+
+// Commands function - process array of CurveInstruction
+uint64_t curve_commands(Curve* curve, const CurveInstruction* items, uint64_t count) {
+    if (curve && items) {
+        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
+        const gdstk::CurveInstruction* cpp_items = 
+            reinterpret_cast<const gdstk::CurveInstruction*>(items);
+        return cpp_curve->commands(cpp_items, count);
+    }
+    return 0;
 }
 
 // Curve properties
@@ -212,32 +300,13 @@ Vec2 curve_last_point(const Curve* curve) {
     return result;
 }
 
-// Curve geometry
-double curve_length(const Curve* curve) {
-    if (curve) {
-        const gdstk::Curve* cpp_curve = reinterpret_cast<const gdstk::Curve*>(curve);
-        return cpp_curve->length();
-    }
-    return 0.0;
-}
-
-void curve_bounding_box(const Curve* curve, Vec2* min, Vec2* max) {
-    if (curve && min && max) {
-        const gdstk::Curve* cpp_curve = reinterpret_cast<const gdstk::Curve*>(curve);
-        gdstk::Vec2 cpp_min, cpp_max;
-        cpp_curve->bounding_box(cpp_min, cpp_max);
-        min->x = cpp_min.x;
-        min->y = cpp_min.y;
-        max->x = cpp_max.x;
-        max->y = cpp_max.y;
-    }
-}
-
 // Point array access
 Array* curve_get_point_array(const Curve* curve) {
     if (curve) {
         const gdstk::Curve* cpp_curve = reinterpret_cast<const gdstk::Curve*>(curve);
-        return reinterpret_cast<Array*>(&cpp_curve->point_array);
+        // Note: This is somewhat dangerous as it exposes internal data
+        // But it matches the API expectation. The returned array should be treated as read-only.
+        return const_cast<Array*>(reinterpret_cast<const Array*>(&cpp_curve->point_array));
     }
     return nullptr;
 }
@@ -258,144 +327,13 @@ void curve_set_tolerance(Curve* curve, double tolerance) {
     }
 }
 
-// Curve transformation
-void curve_translate(Curve* curve, Vec2 offset) {
-    if (curve) {
-        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
-        gdstk::Vec2 cpp_offset;
-        cpp_offset.x = offset.x;
-        cpp_offset.y = offset.y;
-        cpp_curve->translate(cpp_offset);
-    }
-}
-
-void curve_scale(Curve* curve, Vec2 scale, Vec2 center) {
-    if (curve) {
-        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
-        gdstk::Vec2 cpp_scale;
-        cpp_scale.x = scale.x;
-        cpp_scale.y = scale.y;
-        gdstk::Vec2 cpp_center;
-        cpp_center.x = center.x;
-        cpp_center.y = center.y;
-        cpp_curve->scale(cpp_scale, cpp_center);
-    }
-}
-
-void curve_rotate(Curve* curve, double angle, Vec2 center) {
-    if (curve) {
-        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
-        gdstk::Vec2 cpp_center;
-        cpp_center.x = center.x;
-        cpp_center.y = center.y;
-        cpp_curve->rotate(angle, cpp_center);
-    }
-}
-
-void curve_transform(Curve* curve, double magnification, bool x_reflection,
-                    double rotation, Vec2 origin) {
-    if (curve) {
-        gdstk::Curve* cpp_curve = reinterpret_cast<gdstk::Curve*>(curve);
-        gdstk::Vec2 cpp_origin;
-        cpp_origin.x = origin.x;
-        cpp_origin.y = origin.y;
-        cpp_curve->transform(magnification, x_reflection, rotation, cpp_origin);
-    }
-}
-
-// Basic curve manipulation - simplified implementations
-void curve_reverse(Curve* curve) {
-    // Placeholder - full implementation would reverse point order
-}
-
-void curve_close(Curve* curve) {
-    // Placeholder - full implementation would add closing segment
-}
-
+// Curve closed check (matches the actual gdstk::Curve::closed() method)
 bool curve_is_closed(const Curve* curve) {
-    // Placeholder - full implementation would check if first == last point
+    if (curve) {
+        const gdstk::Curve* cpp_curve = reinterpret_cast<const gdstk::Curve*>(curve);
+        return cpp_curve->closed();
+    }
     return false;
-}
-
-// Simplified/placeholder implementations for complex functions
-void curve_smooth_quadratic(Curve* curve, Vec2 end_point, bool relative) {
-    // Placeholder
-}
-
-void curve_smooth_quadratic_to(Curve* curve, Vec2 end_point) {
-    curve_smooth_quadratic(curve, end_point, false);
-}
-
-void curve_smooth_quadratic_by(Curve* curve, Vec2 end_point) {
-    curve_smooth_quadratic(curve, end_point, true);
-}
-
-void curve_smooth_cubic(Curve* curve, Vec2 control2, Vec2 end_point, bool relative) {
-    // Placeholder
-}
-
-void curve_smooth_cubic_to(Curve* curve, Vec2 control2, Vec2 end_point) {
-    curve_smooth_cubic(curve, control2, end_point, false);
-}
-
-void curve_smooth_cubic_by(Curve* curve, Vec2 control2, Vec2 end_point) {
-    curve_smooth_cubic(curve, control2, end_point, true);
-}
-
-void curve_interpolation(Curve* curve, const Array* point_array, const double* angles, 
-                        bool* angle_constraints, const Array* tension_array, 
-                        double initial_curl, double final_curl, bool cycle, bool relative) {
-    // Placeholder for complex interpolation
-}
-
-void curve_parametric(Curve* curve, ParametricCurveFunction curve_function, void* data,
-                     bool relative) {
-    // Placeholder for parametric curves
-}
-
-void curve_commands(Curve* curve, const CurveInstruction* commands, uint64_t command_count) {
-    // Placeholder for SVG-like path commands
-}
-
-Vec2 curve_position_at_length(const Curve* curve, double length) {
-    Vec2 result = {0.0, 0.0};
-    // Placeholder for position calculation
-    return result;
-}
-
-Vec2 curve_gradient_at_length(const Curve* curve, double length, bool from_below) {
-    Vec2 result = {0.0, 0.0};
-    // Placeholder for gradient calculation
-    return result;
-}
-
-void curve_mirror(Curve* curve, Vec2 p0, Vec2 p1) {
-    // Placeholder for mirror operation
-}
-
-void curve_simplify(Curve* curve, double tolerance) {
-    // Placeholder for simplification
-}
-
-void curve_remove_duplicate_points(Curve* curve, double tolerance) {
-    // Placeholder for duplicate removal
-}
-
-bool curve_is_valid(const Curve* curve) {
-    return curve != nullptr;
-}
-
-bool curve_has_self_intersections(const Curve* curve) {
-    // Placeholder for self-intersection check
-    return false;
-}
-
-void curve_intersections(const Curve* curve1, const Curve* curve2, Array* result) {
-    // Placeholder for intersection calculation
-}
-
-void curve_set_point_array(Curve* curve, const Array* point_array) {
-    // Placeholder - would copy point array
 }
 
 } // extern "C"

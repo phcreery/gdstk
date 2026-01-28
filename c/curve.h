@@ -7,6 +7,9 @@
 extern "C" {
 #endif
 
+// Function pointer types for parametric curves
+typedef Vec2 (*ParametricVec2)(double, void*);
+
 // Curve structure
 typedef struct Curve {
     Array* point_array;     // Array of Vec2
@@ -24,58 +27,55 @@ void curve_print(const Curve* curve, bool all);
 // Copy function
 void curve_copy_from(Curve* curve, const Curve* source);
 
-// Basic curve building
-void curve_segment(Curve* curve, Vec2 end_point, bool relative);
-void curve_segment_to(Curve* curve, Vec2 end_point);
-void curve_segment_by(Curve* curve, Vec2 offset);
+// Point append functions (direct point array manipulation)
+void curve_append(Curve* curve, Vec2 point);
+void curve_append_unsafe(Curve* curve, Vec2 point);
+void curve_remove(Curve* curve, uint64_t index);
+void curve_ensure_slots(Curve* curve, uint64_t free_slots);
 
-// Arc functions
-void curve_arc(Curve* curve, double radius, double initial_angle, double final_angle, 
-              double rotation, bool relative);
-void curve_arc_to(Curve* curve, double radius, double initial_angle, double final_angle, 
-                 double rotation);
-void curve_arc_by(Curve* curve, double radius, double initial_angle, double final_angle, 
-                 double rotation);
+// Basic curve building - single coordinate versions
+void curve_horizontal(Curve* curve, double coord_x, bool relative);
+void curve_vertical(Curve* curve, double coord_y, bool relative);
+void curve_segment(Curve* curve, Vec2 end_point, bool relative);
+
+// Basic curve building - array coordinate versions
+void curve_horizontal_array(Curve* curve, const Array* coord_x, bool relative);
+void curve_vertical_array(Curve* curve, const Array* coord_y, bool relative);
+void curve_segment_array(Curve* curve, const Array* points, bool relative);
+
+// Arc functions (matches C++ API signature: radius_x, radius_y, initial_angle, final_angle, rotation)
+void curve_arc(Curve* curve, double radius_x, double radius_y, double initial_angle, double final_angle, double rotation);
 
 // Turn function (convenience for arcs)
 void curve_turn(Curve* curve, double radius, double angle);
 
 // Bezier curve functions
 void curve_bezier(Curve* curve, const Array* control_points, bool relative);
-void curve_bezier_to(Curve* curve, const Array* control_points);
-void curve_bezier_by(Curve* curve, const Array* control_points);
 
-// Quadratic Bezier
-void curve_quadratic(Curve* curve, Vec2 control_point, Vec2 end_point, bool relative);
-void curve_quadratic_to(Curve* curve, Vec2 control_point, Vec2 end_point);
-void curve_quadratic_by(Curve* curve, Vec2 control_point, Vec2 end_point);
+// Cubic Bezier (array of points: every 3 points define a section)
+void curve_cubic(Curve* curve, const Array* points, bool relative);
 
-// Cubic Bezier
-void curve_cubic(Curve* curve, Vec2 control1, Vec2 control2, Vec2 end_point, bool relative);
-void curve_cubic_to(Curve* curve, Vec2 control1, Vec2 control2, Vec2 end_point);
-void curve_cubic_by(Curve* curve, Vec2 control1, Vec2 control2, Vec2 end_point);
+// Cubic smooth Bezier (array of points: every 2 points define a section)
+void curve_cubic_smooth(Curve* curve, const Array* points, bool relative);
 
-// Smooth Bezier continuations
-void curve_smooth_quadratic(Curve* curve, Vec2 end_point, bool relative);
-void curve_smooth_quadratic_to(Curve* curve, Vec2 end_point);
-void curve_smooth_quadratic_by(Curve* curve, Vec2 end_point);
+// Quadratic Bezier (array of points: every 2 points define a section)
+void curve_quadratic(Curve* curve, const Array* points, bool relative);
 
-void curve_smooth_cubic(Curve* curve, Vec2 control2, Vec2 end_point, bool relative);
-void curve_smooth_cubic_to(Curve* curve, Vec2 control2, Vec2 end_point);
-void curve_smooth_cubic_by(Curve* curve, Vec2 control2, Vec2 end_point);
+// Quadratic smooth Bezier - single point
+void curve_quadratic_smooth(Curve* curve, Vec2 end_point, bool relative);
 
-// Interpolating curves
-void curve_interpolation(Curve* curve, const Array* point_array, const double* angles, 
-                        bool* angle_constraints, const Array* tension_array, 
-                        double initial_curl, double final_curl, bool cycle, bool relative);
+// Quadratic smooth Bezier - array of points
+void curve_quadratic_smooth_array(Curve* curve, const Array* points, bool relative);
 
-// Parametric curves
-typedef Vec2 (*ParametricCurveFunction)(double t, void* data);
-void curve_parametric(Curve* curve, ParametricCurveFunction curve_function, void* data,
-                     bool relative);
+// Interpolation function
+void curve_interpolation(Curve* curve, const Array* points, double* angles, bool* angle_constraints,
+                        Vec2* tension, double initial_curl, double final_curl, bool cycle, bool relative);
 
-// SVG-like path commands
-void curve_commands(Curve* curve, const CurveInstruction* commands, uint64_t command_count);
+// Parametric function
+void curve_parametric(Curve* curve, ParametricVec2 curve_function, void* data, bool relative);
+
+// Commands function - process array of CurveInstruction
+uint64_t curve_commands(Curve* curve, const CurveInstruction* items, uint64_t count);
 
 // Curve properties
 uint64_t curve_point_count(const Curve* curve);
@@ -85,45 +85,15 @@ void curve_set_point(Curve* curve, uint64_t index, Vec2 point);
 Vec2 curve_first_point(const Curve* curve);
 Vec2 curve_last_point(const Curve* curve);
 
-// Curve geometry
-double curve_length(const Curve* curve);
-void curve_bounding_box(const Curve* curve, Vec2* min, Vec2* max);
-
-// Curve position and derivatives
-Vec2 curve_position_at_length(const Curve* curve, double length);
-Vec2 curve_gradient_at_length(const Curve* curve, double length, bool from_below);
-
-// Curve transformation
-void curve_translate(Curve* curve, Vec2 offset);
-void curve_scale(Curve* curve, Vec2 scale, Vec2 center);
-void curve_rotate(Curve* curve, double angle, Vec2 center);
-void curve_mirror(Curve* curve, Vec2 p0, Vec2 p1);
-void curve_transform(Curve* curve, double magnification, bool x_reflection,
-                    double rotation, Vec2 origin);
-
-// Curve manipulation
-void curve_reverse(Curve* curve);
-void curve_close(Curve* curve);
-bool curve_is_closed(const Curve* curve);
-
-// Curve simplification
-void curve_simplify(Curve* curve, double tolerance);
-void curve_remove_duplicate_points(Curve* curve, double tolerance);
-
-// Curve validation
-bool curve_is_valid(const Curve* curve);
-bool curve_has_self_intersections(const Curve* curve);
-
-// Curve intersection
-void curve_intersections(const Curve* curve1, const Curve* curve2, Array* result);
-
 // Point array access
 Array* curve_get_point_array(const Curve* curve);
-void curve_set_point_array(Curve* curve, const Array* point_array);
 
 // Tolerance management
 double curve_get_tolerance(const Curve* curve);
 void curve_set_tolerance(Curve* curve, double tolerance);
+
+// Curve status
+bool curve_is_closed(const Curve* curve);
 
 #ifdef __cplusplus
 }

@@ -4,21 +4,17 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Forward declarations
-typedef struct Vec2 Vec2;
-typedef struct Array Array;
-typedef struct Polygon Polygon;
+typedef struct Curve Curve;
 typedef struct Repetition Repetition;
-typedef struct Property Property;
-typedef uint64_t Tag;
-typedef enum ErrorCode ErrorCode;
 
-// Interpolation types
+// Interpolation types (matches C++ InterpolationType enum)
 typedef enum {
     GDSTK_INTERPOLATION_CONSTANT = 0,  // Step-change in join region
     GDSTK_INTERPOLATION_LINEAR,        // LERP from past value to new
@@ -30,7 +26,7 @@ typedef enum {
 typedef double (*ParametricDouble)(double t, void* data);
 typedef Vec2 (*ParametricVec2)(double t, void* data);
 
-// Interpolation structure
+// Interpolation structure (matches C++ Interpolation struct)
 typedef struct Interpolation {
     InterpolationType type;
     union {
@@ -46,51 +42,65 @@ typedef struct Interpolation {
     };
 } Interpolation;
 
-// SubPath types
+// SubPath types (matches C++ SubPathType enum)
 typedef enum {
-    GDSTK_SUBPATH_SEGMENT,    // straight line segment
-    GDSTK_SUBPATH_ARC,        // elliptical arc
-    GDSTK_SUBPATH_BEZIER,     // general Bézier
-    GDSTK_SUBPATH_BEZIER2,    // quadratic Bézier
-    GDSTK_SUBPATH_BEZIER3,    // cubic Bézier
-    GDSTK_SUBPATH_PARAMETRIC  // general parametric function
+    GDSTK_SUBPATH_SEGMENT = 0,    // straight line segment
+    GDSTK_SUBPATH_ARC,            // elliptical arc
+    GDSTK_SUBPATH_BEZIER,         // general Bézier
+    GDSTK_SUBPATH_BEZIER2,        // quadratic Bézier
+    GDSTK_SUBPATH_BEZIER3,        // cubic Bézier
+    GDSTK_SUBPATH_PARAMETRIC      // general parametric function
 } SubPathType;
 
-// SubPath structure
+// SubPath structure (matches C++ SubPath struct)
 typedef struct SubPath {
     SubPathType type;
     void* data;  // Opaque pointer to implementation-specific data
 } SubPath;
 
-// RobustPath element structure
+// RobustPath element structure (matches C++ RobustPathElement struct)
 typedef struct RobustPathElement {
     Tag tag;
-    Interpolation* width_interpolation;
-    Interpolation* offset_interpolation;
-    void* end_function;    // EndFunction pointer
-    void* end_data;        // User data for end function
-    void* join_function;   // JoinFunction pointer  
-    void* join_data;       // User data for join function
-    double bend_radius;
-    double bend_tolerance;
+    Array* width_array;    // Array of Interpolation (should match subpath_array count)
+    Array* offset_array;   // Array of Interpolation (should match subpath_array count)
+    double end_width;      // Last width value used in construction
+    double end_offset;     // Last offset value used in construction
+    EndType end_type;
+    Vec2 end_extensions;
+    EndFunction end_function;
+    void* end_function_data;  // User data for end_function
 } RobustPathElement;
 
-// RobustPath structure
+// RobustPath structure (C wrapper for C++ RobustPath)
 typedef struct RobustPath {
-    Array* subpath_array;    // Array of SubPath*
-    Array* element_array;    // Array of RobustPathElement*
-    double tolerance;
-    double max_evals;
-    double width_scale;
-    double offset_scale;
-    bool trafo_applied;
-    Repetition* repetition;
+    Vec2 end_point;                // Last point on the path
+    Array* subpath_array;          // Array of SubPath (path spine)
+    RobustPathElement* elements;   // Array with count num_elements
+    uint64_t num_elements;
+    double tolerance;              // Numeric tolerance for intersections
+    uint64_t max_evals;           // Maximal number of evaluations per function
+    double width_scale;           // Width scale from transforms
+    double offset_scale;          // Offset scale from transforms
+    double trafo[6];              // Transformation matrix
+    bool simple_path;             // If true, treat as constant width paths
+    bool scale_width;             // Whether width scales with transformations
+    Repetition* repetition;       // Repetition data
     Property* properties;
-    void* owner;  // For Python interface
+    void* owner;                  // For Python interface
 } RobustPath;
 
-// RobustPath creation functions
-RobustPath* robustpath_new(Vec2 initial_point, double width, Tag tag);
+// RobustPath creation functions (matches C++ init overloads)
+RobustPath* robustpath_new(Vec2 initial_position, double width, double offset, 
+                          double tolerance, uint64_t max_evals, Tag tag);
+RobustPath* robustpath_new_multi(Vec2 initial_position, const double* widths, 
+                                const double* offsets, double tolerance, uint64_t max_evals, 
+                                const Tag* tags, uint64_t num_elements);
+RobustPath* robustpath_new_separated(Vec2 initial_position, uint64_t num_elements, 
+                                   double width, double separation, double tolerance, 
+                                   uint64_t max_evals, Tag tag);
+RobustPath* robustpath_new_multi_separated(Vec2 initial_position, uint64_t num_elements, 
+                                          const double* widths, const double* offsets, 
+                                          double tolerance, uint64_t max_evals, const Tag* tags);
 void robustpath_free(RobustPath* robustpath);
 void robustpath_clear(RobustPath* robustpath);
 void robustpath_print(const RobustPath* robustpath, bool all);
@@ -98,58 +108,53 @@ void robustpath_print(const RobustPath* robustpath, bool all);
 // Copy function
 void robustpath_copy_from(RobustPath* robustpath, const RobustPath* source);
 
-// Element management
-void robustpath_add_element(RobustPath* robustpath, double width, Tag tag);
-void robustpath_remove_element(RobustPath* robustpath, uint64_t index);
-uint64_t robustpath_num_elements(const RobustPath* robustpath);
-
-// Path building functions
-void robustpath_segment(RobustPath* robustpath, Vec2 end_point, 
-                       const double* widths, const double* offsets, bool relative);
-void robustpath_arc(RobustPath* robustpath, double radius, double initial_angle, 
-                   double final_angle, double rotation, const double* widths, 
-                   const double* offsets);
+// Path building functions (matches C++ API)
+void robustpath_horizontal(RobustPath* robustpath, double coord_x, const Interpolation* widths, 
+                          const Interpolation* offsets, bool relative);
+void robustpath_vertical(RobustPath* robustpath, double coord_y, const Interpolation* widths, 
+                        const Interpolation* offsets, bool relative);
+void robustpath_segment(RobustPath* robustpath, Vec2 end_point, const Interpolation* widths, 
+                       const Interpolation* offsets, bool relative);
+void robustpath_cubic(RobustPath* robustpath, Vec2 point1, Vec2 point2, Vec2 point3,
+                     const Interpolation* widths, const Interpolation* offsets, bool relative);
+void robustpath_cubic_smooth(RobustPath* robustpath, Vec2 point2, Vec2 point3,
+                            const Interpolation* widths, const Interpolation* offsets, bool relative);
+void robustpath_quadratic(RobustPath* robustpath, Vec2 point1, Vec2 point2,
+                         const Interpolation* widths, const Interpolation* offsets, bool relative);
+void robustpath_quadratic_smooth(RobustPath* robustpath, Vec2 point2,
+                                const Interpolation* widths, const Interpolation* offsets, bool relative);
+void robustpath_bezier(RobustPath* robustpath, const Array* point_array,
+                      const Interpolation* widths, const Interpolation* offsets, bool relative);
+void robustpath_interpolation(RobustPath* robustpath, const Array* point_array, double* angles, 
+                             bool* angle_constraints, Vec2* tension, double initial_curl, 
+                             double final_curl, bool cycle, const Interpolation* widths, 
+                             const Interpolation* offsets, bool relative);
+void robustpath_arc(RobustPath* robustpath, double radius_x, double radius_y, double initial_angle, 
+                   double final_angle, double rotation, const Interpolation* widths, 
+                   const Interpolation* offsets);
 void robustpath_turn(RobustPath* robustpath, double radius, double angle, 
-                    const double* widths, const double* offsets);
-void robustpath_parametric(RobustPath* robustpath, ParametricVec2 curve_function, 
-                          void* curve_data, const double* widths, const double* offsets,
-                          bool relative);
+                    const Interpolation* widths, const Interpolation* offsets);
+void robustpath_parametric(RobustPath* robustpath, ParametricVec2 curve_function, void* func_data,
+                          ParametricVec2 curve_gradient, void* grad_data, const Interpolation* widths, 
+                          const Interpolation* offsets, bool relative);
+uint64_t robustpath_commands(RobustPath* robustpath, const CurveInstruction* items, uint64_t count);
 
-// Bezier curve functions
-void robustpath_bezier(RobustPath* robustpath, const Array* control_points,
-                      const double* widths, const double* offsets, bool relative);
-void robustpath_quadratic(RobustPath* robustpath, Vec2 control_point, Vec2 end_point,
-                         const double* widths, const double* offsets, bool relative);
-void robustpath_cubic(RobustPath* robustpath, Vec2 control1, Vec2 control2, Vec2 end_point,
-                     const double* widths, const double* offsets, bool relative);
+// Position and gradient functions (matches C++ API)
+Vec2 robustpath_position(const RobustPath* robustpath, double u, bool from_below);
+Vec2 robustpath_gradient(const RobustPath* robustpath, double u, bool from_below);
 
-// Smooth curves
-void robustpath_smooth(RobustPath* robustpath, const Array* point_array, 
-                      const Array* angle_array, Array* tension_array,
-                      double initial_curl, double final_curl, bool cycle,
-                      const double* widths, const double* offsets, bool relative);
+// Width and offset functions (matches C++ API)
+void robustpath_width(const RobustPath* robustpath, double u, bool from_below, double* result);
+void robustpath_offset(const RobustPath* robustpath, double u, bool from_below, double* result);
 
-// Interpolation functions
-void robustpath_set_width(RobustPath* robustpath, uint64_t element_index, double width);
-void robustpath_set_offset(RobustPath* robustpath, uint64_t element_index, double offset);
-void robustpath_set_width_interpolation(RobustPath* robustpath, uint64_t element_index, 
-                                       const Interpolation* interpolation);
-void robustpath_set_offset_interpolation(RobustPath* robustpath, uint64_t element_index, 
-                                        const Interpolation* interpolation);
-
-// Geometry properties
-double robustpath_area(const RobustPath* robustpath);
-double robustpath_length(const RobustPath* robustpath);
-void robustpath_bounding_box(const RobustPath* robustpath, Vec2* min, Vec2* max);
-
-// Spine functions
+// Spine and element center functions
 ErrorCode robustpath_spine(const RobustPath* robustpath, Array* result);
-Vec2 robustpath_position(const RobustPath* robustpath, double length);
-Vec2 robustpath_gradient(const RobustPath* robustpath, double length, bool from_below);
+ErrorCode robustpath_element_center(const RobustPath* robustpath, const RobustPathElement* element, 
+                                   Array* result);
 
-// Transformation functions
+// Transformation functions (matches C++ API)
 void robustpath_translate(RobustPath* robustpath, Vec2 v);
-void robustpath_scale(RobustPath* robustpath, double scaling, Vec2 center);
+void robustpath_scale(RobustPath* robustpath, double scale, Vec2 center);
 void robustpath_mirror(RobustPath* robustpath, Vec2 p0, Vec2 p1);
 void robustpath_rotate(RobustPath* robustpath, double angle, Vec2 center);
 void robustpath_transform(RobustPath* robustpath, double magnification, bool x_reflection,
@@ -158,7 +163,7 @@ void robustpath_transform(RobustPath* robustpath, double magnification, bool x_r
 // Conversion functions
 ErrorCode robustpath_to_polygons(const RobustPath* robustpath, bool filter, Tag tag, 
                                 Array* result);
-void robustpath_apply_repetition(RobustPath* robustpath, Array* result);
+void robustpath_apply_repetition(const RobustPath* robustpath, Array* result);
 
 // Output functions
 ErrorCode robustpath_to_gds(const RobustPath* robustpath, FILE* out, double scaling);

@@ -20,7 +20,7 @@ typedef enum {
     GDSTK_ANCHOR_SE = 10  // Southeast
 } Anchor;
 
-// Label structure
+// Label structure (C wrapper for C++ Label)
 typedef struct Label {
     Tag tag;
     char* text;           // NULL-terminated text string
@@ -35,25 +35,10 @@ typedef struct Label {
 } Label;
 
 // Label functions
-Label* label_new(const char* text, Vec2 origin, double rotation, uint32_t layer, uint32_t texttype);
+Label* label_new(const char* text, Vec2 origin, double rotation, Tag tag);
 void label_free(Label* label);
 void label_clear(Label* label);
 void label_print(const Label* label);
-
-// Property access functions
-uint32_t label_layer(const Label* label);
-uint32_t label_texttype(const Label* label);
-Vec2 label_origin(const Label* label);
-double label_rotation(const Label* label);
-const char* label_text(const Label* label);
-void label_set_layer(Label* label, uint32_t layer);
-void label_set_texttype(Label* label, uint32_t texttype);
-void label_set_origin(Label* label, Vec2 origin);
-void label_set_rotation(Label* label, double rotation);
-void label_set_text(Label* label, const char* text);
-
-// Position access
-Vec2 label_position(const Label* label);
 
 // Copy function
 void label_copy_from(Label* label, const Label* source);

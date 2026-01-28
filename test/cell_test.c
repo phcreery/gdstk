@@ -225,10 +225,6 @@ int test_bounding_box() {
     // Use c2 which has direct polygons instead of c3 which only has references
     cell_bounding_box(tree->c2, &bbox_min, &bbox_max);
     
-    // Debug: print actual bounding box
-    printf("DEBUG: Actual bounding box: min=(%g, %g), max=(%g, %g)\n", 
-           bbox_min.x, bbox_min.y, bbox_max.x, bbox_max.y);
-    
     // c2 has one triangle with points (2,0), (2,1), (1,0)
     TEST_ASSERT(points_equal(bbox_min, (Vec2){1, 0}), "Min point should be (1, 0)");
     TEST_ASSERT(points_equal(bbox_max, (Vec2){2, 1}), "Max point should be (2, 1)");
@@ -245,16 +241,12 @@ int test_flatten() {
     size_t poly_count_before = cell_polygon_count(tree->c3);
     size_t label_count_before = cell_label_count(tree->c3);
     
-    printf("DEBUG: Before flatten: %zu polygons, %zu labels\n", poly_count_before, label_count_before);
-    
     // Flatten
     cell_flatten(tree->c3, false, NULL);
     
     // Count after flattening - should have more polygons now
     size_t poly_count_after = cell_polygon_count(tree->c3);
     size_t label_count_after = cell_label_count(tree->c3);
-    
-    printf("DEBUG: After flatten: %zu polygons, %zu labels\n", poly_count_after, label_count_after);
     
     // Our stub implementation just clears references, doesn't actually flatten
     // Skip this test for now

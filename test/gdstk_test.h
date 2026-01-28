@@ -26,22 +26,31 @@
     do { \
         if (!(condition)) { \
             printf("FAIL: %s - %s\n", __func__, message); \
-            return 0; \
+            return; \
+        } \
+    } while(0)
+
+#define TEST_ASSERT_FLOAT_WITHIN(tolerance, expected, actual, message) \
+    do { \
+        if (fabs((expected) - (actual)) > (tolerance)) { \
+            printf("FAIL: %s - %s (expected: %g, actual: %g, diff: %g)\n", \
+                   __func__, message, (double)(expected), (double)(actual), \
+                   fabs((double)(expected) - (double)(actual))); \
+            return; \
         } \
     } while(0)
 
 #define TEST_PASS() \
     do { \
         printf("PASS: %s\n", __func__); \
-        return 1; \
+        return; \
     } while(0)
 
-#define TEST_RUN(test_func) \
+#define RUN_TEST(test_func) \
     do { \
-        total_tests++; \
-        if ((test_func)()) { \
-            passed_tests++; \
-        } \
+        printf("Running " #test_func "...\n"); \
+        (test_func)(); \
+        increment_test_counters(); \
     } while(0)
 
 #define TEST_SUITE_BEGIN() \
@@ -60,5 +69,13 @@
         printf("❌ %d tests failed\n", total_tests - passed_tests); \
         return 1; \
     }
+
+// Test framework functions
+void init_test_results(void);
+void increment_test_counters(void);
+int print_test_results(void);
+
+// Helper functions
+bool vec2_equal(Vec2 a, Vec2 b);
 
 #endif // GDSTK_TEST_H

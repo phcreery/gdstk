@@ -21,7 +21,7 @@ typedef enum {
     GDSTK_REFERENCE_NAME
 } ReferenceType;
 
-// Reference structure
+// Reference structure (C wrapper for C++ Reference)
 typedef struct Reference {
     ReferenceType type;
     union {

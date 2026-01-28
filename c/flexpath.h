@@ -4,52 +4,52 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Forward declarations
-typedef struct Vec2 Vec2;
-typedef struct Array Array;
 typedef struct Curve Curve;
-typedef struct Polygon Polygon;
 typedef struct Repetition Repetition;
-typedef struct Property Property;
 typedef struct RaithData RaithData;
-typedef uint64_t Tag;
-typedef enum ErrorCode ErrorCode;
 
-// Join types for path elements
+// Join types for path elements (matches C++ JoinType)
 typedef enum {
-    GDSTK_JOIN_MITER = 0,
+    GDSTK_JOIN_NATURAL = 0,  // Only bevel acute joins
+    GDSTK_JOIN_MITER,
     GDSTK_JOIN_BEVEL,
     GDSTK_JOIN_ROUND,
-    GDSTK_JOIN_FUNCTION
+    GDSTK_JOIN_SMOOTH,       // Becomes Round if simple_path
+    GDSTK_JOIN_FUNCTION      // Use join_function
 } JoinType;
 
-// End types for path elements
+// End types for path elements (matches C++ EndType)
 typedef enum {
     GDSTK_END_FLUSH = 0,
-    GDSTK_END_EXTENDED,
     GDSTK_END_ROUND,
-    GDSTK_END_FUNCTION
+    GDSTK_END_HALFWIDTH,
+    GDSTK_END_EXTENDED,      // Use end_extensions
+    GDSTK_END_SMOOTH,        // Becomes Round if simple_path
+    GDSTK_END_FUNCTION       // Use end_function
 } EndType;
 
-// Bend types for path elements
+// Bend types for path elements (matches C++ BendType)
 typedef enum {
     GDSTK_BEND_NONE = 0,
-    GDSTK_BEND_CIRCULAR,
-    GDSTK_BEND_FUNCTION
+    GDSTK_BEND_CIRCULAR,     // Use bend_radius
+    GDSTK_BEND_FUNCTION      // Use bend_function
 } BendType;
 
-// Function pointer types
+// Function pointer types (matches C++ API signatures)
+typedef Vec2 (*ParametricVec2)(double, void*);
 typedef Array* (*JoinFunction)(Vec2 first_point, Vec2 first_direction, 
                                Vec2 second_point, Vec2 second_direction, 
                                Vec2 center, double width, void* data);
 typedef Array* (*EndFunction)(Vec2 first_point, Vec2 first_direction,
                               Vec2 second_point, Vec2 second_direction, void* data);
-typedef Array* (*BendFunction)(Vec2 radius_vector, double initial_angle,
+typedef Array* (*BendFunction)(double radius, double initial_angle,
                                double final_angle, Vec2 center, void* data);
 
 // FlexPath element structure
@@ -69,23 +69,27 @@ typedef struct FlexPathElement {
     void* bend_function_data;
 } FlexPathElement;
 
-// FlexPath structure
+// FlexPath structure (C wrapper for C++ FlexPath)
 typedef struct FlexPath {
-    Curve* spine;
-    FlexPathElement* elements;  // Array with count num_elements
+    Curve* spine;                // The spine curve
+    FlexPathElement* elements;   // Array with count num_elements
     uint64_t num_elements;
-    bool simple_path;
-    bool scale_width;
-    Repetition* repetition;
-    Property* properties;
-    RaithData* raith_data;
-    void* owner;  // For Python interface
+    bool simple_path;            // If true, elements treated as constant width
+    bool scale_width;            // Whether width scales with path transformations
+    Repetition* repetition;      // Repetition data
+    Property* properties;        // Properties list
+    RaithData* raith_data;       // Raith-specific data
+    void* owner;                 // For Python interface
 } FlexPath;
 
-// FlexPath creation functions
-FlexPath* flexpath_new(Vec2 initial_point, double width, Tag tag);
+// FlexPath creation functions (matches C++ init overloads)
+FlexPath* flexpath_new(Vec2 initial_point, double width, double offset, double tolerance, Tag tag);
 FlexPath* flexpath_new_multi(Vec2 initial_point, const double* widths, 
-                            const double* offsets, const Tag* tags, uint64_t num_paths);
+                            const double* offsets, double tolerance, const Tag* tags, uint64_t num_paths);
+FlexPath* flexpath_new_separated(Vec2 initial_point, uint64_t num_elements, double width, 
+                                double separation, double tolerance, Tag tag);
+FlexPath* flexpath_new_multi_separated(Vec2 initial_point, uint64_t num_elements, const double* widths,
+                                      const double* offsets, double tolerance, const Tag* tags);
 void flexpath_free(FlexPath* flexpath);
 void flexpath_clear(FlexPath* flexpath);
 void flexpath_print(const FlexPath* flexpath, bool all);
@@ -110,9 +114,19 @@ void flexpath_set_bend_type(FlexPath* flexpath, uint64_t element_index, BendType
 void flexpath_set_bend_radius(FlexPath* flexpath, uint64_t element_index, double radius);
 
 // Path building functions
+void flexpath_horizontal(FlexPath* flexpath, double coord_x, const double* widths, 
+                        const double* offsets, bool relative);
+void flexpath_horizontal_array(FlexPath* flexpath, const Array* coord_x, const double* widths, 
+                              const double* offsets, bool relative);
+void flexpath_vertical(FlexPath* flexpath, double coord_y, const double* widths, 
+                      const double* offsets, bool relative);
+void flexpath_vertical_array(FlexPath* flexpath, const Array* coord_y, const double* widths, 
+                            const double* offsets, bool relative);
 void flexpath_segment(FlexPath* flexpath, Vec2 end_point, const double* widths, 
                      const double* offsets, bool relative);
-void flexpath_arc(FlexPath* flexpath, double radius, double initial_angle, 
+void flexpath_segment_array(FlexPath* flexpath, const Array* point_array, const double* widths, 
+                           const double* offsets, bool relative);
+void flexpath_arc(FlexPath* flexpath, double radius_x, double radius_y, double initial_angle, 
                  double final_angle, double rotation, const double* widths, 
                  const double* offsets);
 void flexpath_turn(FlexPath* flexpath, double radius, double angle, 
@@ -121,36 +135,30 @@ void flexpath_turn(FlexPath* flexpath, double radius, double angle,
 // Bezier curve functions
 void flexpath_bezier(FlexPath* flexpath, const Array* control_points,
                     const double* widths, const double* offsets, bool relative);
-void flexpath_quadratic(FlexPath* flexpath, Vec2 control_point, Vec2 end_point,
-                       const double* widths, const double* offsets, bool relative);
-void flexpath_cubic(FlexPath* flexpath, Vec2 control1, Vec2 control2, Vec2 end_point,
+void flexpath_cubic(FlexPath* flexpath, const Array* point_array,
                    const double* widths, const double* offsets, bool relative);
+void flexpath_cubic_smooth(FlexPath* flexpath, const Array* point_array,
+                          const double* widths, const double* offsets, bool relative);
+void flexpath_quadratic(FlexPath* flexpath, const Array* point_array,
+                       const double* widths, const double* offsets, bool relative);
+void flexpath_quadratic_smooth(FlexPath* flexpath, Vec2 end_point,
+                              const double* widths, const double* offsets, bool relative);
+void flexpath_quadratic_smooth_array(FlexPath* flexpath, const Array* point_array,
+                                    const double* widths, const double* offsets, bool relative);
 
-// Interpolating curves
+// Advanced curve functions
 void flexpath_interpolation(FlexPath* flexpath, const Array* point_array, 
-                           const double* angles, bool* angle_constraints,
-                           const Array* tension_array, double initial_curl, 
+                           double* angles, bool* angle_constraints,
+                           Vec2* tension, double initial_curl, 
                            double final_curl, bool cycle, const double* widths, 
                            const double* offsets, bool relative);
+void flexpath_parametric(FlexPath* flexpath, ParametricVec2 curve_function, void* data,
+                        const double* widths, const double* offsets, bool relative);
+uint64_t flexpath_commands(FlexPath* flexpath, const CurveInstruction* items, uint64_t count);
 
-// Smooth curves
-void flexpath_smooth(FlexPath* flexpath, const Array* point_array, 
-                    const Array* angle_array, Array* tension_array,
-                    double initial_curl, double final_curl, bool cycle,
-                    const double* widths, const double* offsets, bool relative);
-
-// Geometry properties  
-double flexpath_area(const FlexPath* flexpath);
-double flexpath_length(const FlexPath* flexpath);
-void flexpath_bounding_box(const FlexPath* flexpath, Vec2* min, Vec2* max);
-
-// Path properties
-Vec2 flexpath_position(const FlexPath* flexpath, double length);
-Vec2 flexpath_gradient(const FlexPath* flexpath, double length, bool from_below);
-
-// Transformation functions
+// Transformation functions (matches C++ API)
 void flexpath_translate(FlexPath* flexpath, Vec2 v);
-void flexpath_scale(FlexPath* flexpath, double scaling, Vec2 center);
+void flexpath_scale(FlexPath* flexpath, double scale, Vec2 center);
 void flexpath_mirror(FlexPath* flexpath, Vec2 p0, Vec2 p1);
 void flexpath_rotate(FlexPath* flexpath, double angle, Vec2 center);
 void flexpath_transform(FlexPath* flexpath, double magnification, bool x_reflection,
@@ -159,20 +167,14 @@ void flexpath_transform(FlexPath* flexpath, double magnification, bool x_reflect
 // Conversion functions
 ErrorCode flexpath_to_polygons(const FlexPath* flexpath, bool filter, Tag tag, 
                               Array* result);
-void flexpath_apply_repetition(FlexPath* flexpath, Array* result);
+ErrorCode flexpath_element_center(const FlexPath* flexpath, const FlexPathElement* element,
+                                 Array* result);
+void flexpath_apply_repetition(const FlexPath* flexpath, Array* result);
 
 // Output functions
 ErrorCode flexpath_to_gds(const FlexPath* flexpath, FILE* out, double scaling);
 ErrorCode flexpath_to_svg(const FlexPath* flexpath, FILE* out, double scaling, 
                          uint32_t precision);
-
-// FlexPathElement utility functions
-FlexPathElement* flexpath_element_new(Tag tag, double width, double offset);
-void flexpath_element_free(FlexPathElement* element);
-void flexpath_element_set_width_at_point(FlexPathElement* element, uint64_t point_index, 
-                                         double width);
-void flexpath_element_set_offset_at_point(FlexPathElement* element, uint64_t point_index, 
-                                          double offset);
 
 #ifdef __cplusplus
 }

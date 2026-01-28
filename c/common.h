@@ -88,6 +88,7 @@ typedef struct RobustPath RobustPath;
 typedef struct Curve Curve;
 typedef struct Property Property;
 typedef struct Repetition Repetition;
+typedef struct RaithData RaithData;
 
 // Forward declarations for complex types
 typedef struct GeometryInfo GeometryInfo;
@@ -98,7 +99,7 @@ typedef struct TagMap TagMap;
 typedef bool (*PolygonComparisonFunction)(Polygon* const, Polygon* const);
 typedef Vec2 (*ParametricCurveFunction)(double t, void* data);
 
-// Curve instruction structure
+// Curve instruction structure (used by curve commands)
 typedef struct CurveInstruction {
     union {
         char command;

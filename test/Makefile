@@ -14,11 +14,11 @@ TEST_FRAMEWORK_OBJS = gdstk_test.o
 
 # C wrapper sources from the c/ directory
 WRAPPER_SOURCES = ../c/cell.cpp ../c/polygon.cpp ../c/label.cpp ../c/reference.cpp \
-                  ../c/library.cpp ../c/utils.cpp
+                  ../c/library.cpp ../c/utils.cpp ../c/curve.cpp
 WRAPPER_OBJS = $(WRAPPER_SOURCES:../c/%.cpp=../c/%.o)
 
 # Default target
-all: basic_test cell_test
+all: basic_test cell_test curve_test
 
 # Build framework
 gdstk_test.o: gdstk_test.c gdstk_test.h
@@ -34,13 +34,16 @@ basic_test: basic_test.c $(WRAPPER_OBJS) $(TEST_FRAMEWORK_OBJS)
 cell_test: cell_test.c $(WRAPPER_OBJS) $(TEST_FRAMEWORK_OBJS)
 	$(CC) $(CFLAGS) $< $(WRAPPER_OBJS) $(TEST_FRAMEWORK_OBJS) $(LIBS) -o $@
 
+curve_test: curve_test.c $(WRAPPER_OBJS) $(TEST_FRAMEWORK_OBJS)
+	$(CC) $(CFLAGS) $< $(WRAPPER_OBJS) $(TEST_FRAMEWORK_OBJS) $(LIBS) -o $@
+
 # Quick test
 test: basic_test
 	./basic_test
 
 # Clean
 clean:
-	rm -f *.o *.exe basic_test cell_test
+	rm -f *.o *.exe basic_test cell_test curve_test
 	rm -f ../c/*.o
 
 .PHONY: all test clean
