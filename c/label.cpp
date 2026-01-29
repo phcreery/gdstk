@@ -6,7 +6,7 @@
 
 // Label C wrapper functions
 
-Label* label_new(const char* text, Vec2 origin, double rotation, uint32_t layer, uint32_t texttype) {
+Label* label_new(const char* text, Vec2 origin, double rotation, Tag tag) {
     gdstk::Label* cpp_label = static_cast<gdstk::Label*>(malloc(sizeof(gdstk::Label)));
     if (!cpp_label) return nullptr;
     
@@ -24,7 +24,7 @@ Label* label_new(const char* text, Vec2 origin, double rotation, uint32_t layer,
     cpp_label->origin.x = origin.x;
     cpp_label->origin.y = origin.y;
     cpp_label->rotation = rotation;
-    cpp_label->tag = ((uint64_t)layer << 16) | texttype;
+    cpp_label->tag = tag;
     
     return reinterpret_cast<Label*>(cpp_label);
 }

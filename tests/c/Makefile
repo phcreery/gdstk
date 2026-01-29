@@ -1,0 +1,40 @@
+# Makefile for GDSTK C Test Suite
+#
+# This Makefile builds the C test files for the GDSTK C bindings.
+
+# Compiler settings
+CC = gcc
+CXX = g++
+CFLAGS = -std=c11 -Wall -Wextra -O2 -I../../c -I../../include
+CXXFLAGS = -std=c++11 -Wall -Wextra -O2 -I../../include -I../../c
+LIBS = -L../../build/lib -L../../external/lib -lgdstk_c -lclipper -lqhullstatic_r -lz -lstdc++ -lm
+
+# Test framework
+TEST_FRAMEWORK_OBJS = gdstk_test.o
+
+# Default target
+all: basic_test
+
+# Build framework
+gdstk_test.o: gdstk_test.c gdstk_test.h
+	$(CC) $(CFLAGS) -c gdstk_test.c -o gdstk_test.o
+
+# Build tests using the combined library (C wrapper is already included in libgdstk_c.a)
+basic_test: basic_test.c $(TEST_FRAMEWORK_OBJS)
+	$(CC) $(CFLAGS) $< $(TEST_FRAMEWORK_OBJS) $(LIBS) -o $@
+
+cell_test: cell_test.c $(TEST_FRAMEWORK_OBJS)
+	$(CC) $(CFLAGS) $< $(TEST_FRAMEWORK_OBJS) $(LIBS) -o $@
+
+curve_test: curve_test.c $(TEST_FRAMEWORK_OBJS)
+	$(CC) $(CFLAGS) $< $(TEST_FRAMEWORK_OBJS) $(LIBS) -o $@
+
+# Quick test
+test: basic_test
+	./basic_test
+
+# Clean
+clean:
+	rm -f *.o *.exe basic_test cell_test curve_test
+
+.PHONY: all test clean

@@ -64,22 +64,10 @@ void set_add(Set* set, uint64_t value);
 void set_remove(Set* set, uint64_t value);
 uint64_t set_size(const Set* set);
 
-// Tag utility functions (already in cell.h but included for completeness)
-typedef uint64_t Tag;
-Tag make_tag(uint32_t layer, uint32_t type);
-uint32_t get_layer(Tag tag);
-uint32_t get_type(Tag tag);
-void set_layer(Tag* tag, uint32_t layer);
-void set_type(Tag* tag, uint32_t type);
-
 // Memory management functions
 void* gdstk_allocate(uint64_t size);
 void* gdstk_reallocate(void* ptr, uint64_t size);
 void gdstk_free(void* ptr);
-
-// Test utility functions
-bool approx_equal(double a, double b, double tolerance);
-bool points_equal(Vec2 a, Vec2 b);
 
 #ifdef __cplusplus
 }

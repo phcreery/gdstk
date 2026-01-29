@@ -107,6 +107,27 @@ typedef struct CurveInstruction {
     };
 } CurveInstruction;
 
+// Tag utility functions (inline implementations)
+static inline Tag make_tag(uint32_t layer, uint32_t datatype) {
+    return ((uint64_t)datatype << 32) | layer;
+}
+
+static inline uint32_t get_layer(Tag tag) {
+    return (uint32_t)(tag & 0xFFFFFFFF);
+}
+
+static inline uint32_t get_type(Tag tag) {
+    return (uint32_t)(tag >> 32);
+}
+
+static inline void set_layer(Tag* tag, uint32_t layer) {
+    *tag = (*tag & 0xFFFFFFFF00000000ULL) | layer;
+}
+
+static inline void set_type(Tag* tag, uint32_t datatype) {
+    *tag = (*tag & 0xFFFFFFFF) | ((uint64_t)datatype << 32);
+}
+
 #ifdef __cplusplus
 }
 #endif

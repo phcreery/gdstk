@@ -7,7 +7,7 @@
 
 // Polygon C wrapper functions
 
-Polygon* polygon_new(const Vec2* points, uint64_t num_points, uint32_t layer, uint32_t datatype) {
+Polygon* polygon_new(const Vec2* points, uint64_t num_points, Tag tag) {
     if (!points || num_points == 0) return nullptr;
     
     gdstk::Polygon* cpp_polygon = static_cast<gdstk::Polygon*>(malloc(sizeof(gdstk::Polygon)));
@@ -16,8 +16,8 @@ Polygon* polygon_new(const Vec2* points, uint64_t num_points, uint32_t layer, ui
     // Initialize the C++ object in-place
     new(cpp_polygon) gdstk::Polygon();
     
-    // Set tag (Tag is just uint64_t, pack layer and datatype)
-    cpp_polygon->tag = ((uint64_t)layer << 16) | datatype;
+    // Set tag
+    cpp_polygon->tag = tag;
     
     // Set points
     cpp_polygon->point_array.ensure_slots(num_points);

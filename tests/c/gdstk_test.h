@@ -26,7 +26,7 @@
     do { \
         if (!(condition)) { \
             printf("FAIL: %s - %s\n", __func__, message); \
-            return; \
+            return 0; \
         } \
     } while(0)
 
@@ -43,7 +43,7 @@
 #define TEST_PASS() \
     do { \
         printf("PASS: %s\n", __func__); \
-        return; \
+        return 1; \
     } while(0)
 
 #define RUN_TEST(test_func) \
@@ -77,5 +77,8 @@ int print_test_results(void);
 
 // Helper functions
 bool vec2_equal(Vec2 a, Vec2 b);
+
+// Utility function (use static in source files to avoid multiple definition)
+// static bool approx_equal(double a, double b, double tolerance);
 
 #endif // GDSTK_TEST_H

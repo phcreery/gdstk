@@ -44,3 +44,8 @@ int print_test_results() {
 bool vec2_equal(Vec2 a, Vec2 b) {
     return fabs(a.x - b.x) < TOLERANCE && fabs(a.y - b.y) < TOLERANCE;
 }
+
+// Helper function to compare floating point numbers
+static bool approx_equal(double a, double b, double tolerance) {
+    return fabs(a - b) <= tolerance;
+}
