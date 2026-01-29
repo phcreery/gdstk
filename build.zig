@@ -34,11 +34,6 @@ pub fn build(b: *std.Build) void {
         .target = b.standardTargetOptions(.{}),
         .optimize = b.standardOptimizeOption(.{}),
     };
-    // const link_mode = b.option(
-    //     std.builtin.LinkMode,
-    //     "linkage",
-    //     "how the library should be linked (default: static)",
-    // );
 
     const zlib_dep = b.dependency("zlib", opts);
     const qhull_dep = b.dependency("qhull", opts);
@@ -68,12 +63,13 @@ pub fn build(b: *std.Build) void {
     libgdstk.root_module.linkLibrary(qhull_dep.artifact("qhull"));
     libgdstk.root_module.linkLibrary(zlib_dep.artifact("z"));
 
-    libgdstk.installHeadersDirectory(b.path("c"), "", .{
-        // .include_extensions = &.{ ".h", ".hpp" },
-    });
+    libgdstk.installHeadersDirectory(b.path("c"), "", .{});
     b.installArtifact(libgdstk);
 
-    // translate-c the libraw.h file
+    // =================================
+    // translate-c the gdstk.h file
+    // =================================
+
     const translate_c = b.addTranslateC(.{
         .root_source_file = b.path("c/gdstk.h"),
         .target = opts.target,
