@@ -19,8 +19,8 @@
 #include "gdstk.h"
 
 // Global test counters (extern declaration)
-extern int total_tests;
-extern int passed_tests;
+extern int g_total_tests;
+extern int g_passed_tests;
 
 // Testing constants
 #define TOLERANCE 1e-9
@@ -40,7 +40,7 @@ extern int passed_tests;
             printf("FAIL: %s - %s (expected: %g, actual: %g, diff: %g)\n", \
                    __func__, message, (double)(expected), (double)(actual), \
                    fabs((double)(expected) - (double)(actual))); \
-            return; \
+            return 0; \
         } \
     } while(0)
 
@@ -52,10 +52,10 @@ extern int passed_tests;
 
 #define TEST_RUN(test_func) \
     do { \
-        total_tests++; \
+        g_total_tests++; \
         printf("Running %s...\n", #test_func); \
         if (test_func()) { \
-            passed_tests++; \
+            g_passed_tests++; \
             printf("  ✓ %s passed\n", #test_func); \
         } else { \
             printf("  ✗ %s failed\n", #test_func); \
@@ -66,19 +66,17 @@ extern int passed_tests;
 #define RUN_TEST(test_func) TEST_RUN(test_func)
 
 #define TEST_SUITE_BEGIN() \
-    int total_tests = 0; \
-    int passed_tests = 0; \
     printf("Running GDSTK C Bindings Test Suite\n"); \
     printf("====================================\n\n");
 
 #define TEST_SUITE_END() \
     printf("\n====================================\n"); \
-    printf("Test Results: %d/%d tests passed\n", passed_tests, total_tests); \
-    if (passed_tests == total_tests) { \
+    printf("Test Results: %d/%d tests passed\n", g_passed_tests, g_total_tests); \
+    if (g_passed_tests == g_total_tests) { \
         printf("🎉 All tests passed!\n"); \
         return 0; \
     } else { \
-        printf("❌ %d tests failed\n", total_tests - passed_tests); \
+        printf("❌ %d tests failed\n", g_total_tests - g_passed_tests); \
         return 1; \
     }
 

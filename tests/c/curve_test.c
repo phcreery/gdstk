@@ -20,7 +20,7 @@ bool vec2_arrays_equal(const Vec2* arr1, size_t count1, const Vec2* arr2, size_t
 }
 
 // Test 1: Curve initialization (matches test_init() in Python)
-void test_init() {
+int test_init() {
     printf("Running test_init...\n");
     
     // Test 1: Create curve with complex initial point (1j = 0 + 1i)
@@ -71,7 +71,7 @@ void test_init() {
 }
 
 // Test 2: Curve point management (matches test_points() in Python)
-void test_points() {
+int test_points() {
     printf("Running test_points...\n");
     
     // Test first case: points = [(0, 1), (1, 0), (-1, -1)]
