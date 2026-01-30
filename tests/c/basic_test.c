@@ -6,11 +6,6 @@
 
 #include "gdstk_test.h"
 
-// Helper function for approximate equality
-static bool approx_equal(double a, double b, double tolerance) {
-    return fabs(a - b) <= tolerance;
-}
-
 // Test 1: Basic cell creation and properties
 int test_basic_cell() {
     Cell* cell = cell_new("basic_test");

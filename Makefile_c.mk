@@ -21,7 +21,7 @@ C_WRAPPER_OBJ_DIR = $(BUILD_DIR)/obj/c
 INCLUDES = -I$(INCLUDE_DIR) -I$(C_WRAPPER_DIR) -I$(EXTERNAL_DIR)/include -I$(EXTERNAL_DIR)
 
 # Compiler flags
-CXXFLAGS = -std=c++11 -Wall -Wextra -O2 -fPIC $(INCLUDES)
+CXXFLAGS = -std=c++11 -Wall -Wextra -Wshadow -Wvla -Wformat -Wno-missing-field-initializers -Wno-missing-braces -Wno-cast-function-type -Wno-unused-parameter -O2 -fPIC $(INCLUDES)
 CFLAGS = -std=c99 -Wall -Wextra -O2 -fPIC $(INCLUDES)
 
 # GDSTK source files

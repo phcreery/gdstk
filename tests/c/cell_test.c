@@ -54,14 +54,14 @@ test_tree_t* create_test_tree(void) {
     
     // Create polygons
     Vec2 points1[] = {{0, 0}, {0, 1}, {1, 0}};
-    tree->p1 = polygon_new(points1, 3, 0, 0);
+    tree->p1 = polygon_new_compat(points1, 3, 0, 0);
     
     Vec2 points2[] = {{2, 0}, {2, 1}, {1, 0}};
-    tree->p2 = polygon_new(points2, 3, 1, 1);
+    tree->p2 = polygon_new_compat(points2, 3, 1, 1);
     
     // Create labels
-    tree->l1 = label_new("label1", (Vec2){0, 0}, 0, 11, 0);
-    tree->l2 = label_new("label2", (Vec2){2, 1}, 0, 12, 0);
+    tree->l1 = label_new_compat("label1", (Vec2){0, 0}, 0, 11, 0);
+    tree->l2 = label_new_compat("label2", (Vec2){2, 1}, 0, 12, 0);
     
     // Create cells
     tree->c1 = cell_new("tree1");
@@ -97,21 +97,21 @@ Polygon* create_rectangle(double x1, double y1, double x2, double y2,
     Vec2 points[] = {
         {x1, y1}, {x2, y1}, {x2, y2}, {x1, y2}
     };
-    return polygon_new(points, 4, layer, datatype);
+    return polygon_new_compat(points, 4, layer, datatype);
 }
 
 Polygon* create_triangle(Vec2 p1, Vec2 p2, Vec2 p3, 
                         uint32_t layer, uint32_t datatype) {
     Vec2 points[] = {p1, p2, p3};
-    return polygon_new(points, 3, layer, datatype);
+    return polygon_new_compat(points, 3, layer, datatype);
 }
 
 
 // Test 1: Adding elements to a cell
 int test_add_element() {
     Vec2 points[] = {{0, 0}, {1, 0}, {0, 1}};
-    Polygon* p = polygon_new(points, 3, 0, 0);
-    Label* l = label_new("label", (Vec2){0, 0}, 0, 0, 0);
+    Polygon* p = polygon_new_compat(points, 3, 0, 0);
+    Label* l = label_new_compat("label", (Vec2){0, 0}, 0, 0, 0);
     Cell* c = cell_new("c_add_element");
     
     // Add polygon
@@ -132,12 +132,12 @@ int test_add_element() {
 // Test 2: Cell copying
 int test_copy() {
     Vec2 points[] = {{0, 0}, {1, 0}, {0, 1}};
-    Polygon* p = polygon_new(points, 3, 0, 0);
-    Label* lbl = label_new("label", (Vec2){0, 0}, 0, 0, 0);
+    Polygon* p = polygon_new_compat(points, 3, 0, 0);
+    Label* lbl = label_new_compat("label", (Vec2){0, 0}, 0, 0, 0);
     
     Cell* cref = cell_new("ref");
     Vec2 rect_points[] = {{-1, -1}, {-2, -1}, {-2, -2}, {-1, -2}};
-    Polygon* rect = polygon_new(rect_points, 4, 0, 0);
+    Polygon* rect = polygon_new_compat(rect_points, 4, 0, 0);
     cell_add_polygon(cref, rect);
     
     Reference* ref = reference_new(cref, (Vec2){0, 0}, 0, 1, false, 0);
@@ -273,7 +273,7 @@ int test_polygon_operations() {
 
 // Test 8: Label operations
 int test_label_operations() {
-    Label* l = label_new("test_label", (Vec2){1.5, 2.5}, 0, 10, 2);
+    Label* l = label_new_compat("test_label", (Vec2){1.5, 2.5}, 0, 10, 2);
     
     const char* text = label_text(l);
     TEST_ASSERT(strcmp(text, "test_label") == 0, "Text should match");

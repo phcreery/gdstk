@@ -18,6 +18,10 @@
 #include <math.h>
 #include "gdstk.h"
 
+// Global test counters (extern declaration)
+extern int total_tests;
+extern int passed_tests;
+
 // Testing constants
 #define TOLERANCE 1e-9
 
@@ -46,12 +50,20 @@
         return 1; \
     } while(0)
 
-#define RUN_TEST(test_func) \
+#define TEST_RUN(test_func) \
     do { \
-        printf("Running " #test_func "...\n"); \
-        (test_func)(); \
-        increment_test_counters(); \
+        total_tests++; \
+        printf("Running %s...\n", #test_func); \
+        if (test_func()) { \
+            passed_tests++; \
+            printf("  ✓ %s passed\n", #test_func); \
+        } else { \
+            printf("  ✗ %s failed\n", #test_func); \
+        } \
     } while(0)
+
+// Alias for compatibility
+#define RUN_TEST(test_func) TEST_RUN(test_func)
 
 #define TEST_SUITE_BEGIN() \
     int total_tests = 0; \

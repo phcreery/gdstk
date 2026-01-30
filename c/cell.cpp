@@ -277,3 +277,40 @@ void cell_add_robustpath(Cell* cell, RobustPath* robustpath) {
     gdstk::RobustPath* cpp_robustpath = reinterpret_cast<gdstk::RobustPath*>(robustpath);
     cpp_cell->robustpath_array.append(cpp_robustpath);
 }
+
+// Get elements functions (match C++ API)
+void cell_get_polygons(const Cell* cell, bool apply_repetitions, bool include_paths, 
+                      int64_t depth, bool filter, Tag tag, Array* result) {
+    if (!cell || !result) return;
+    
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    gdstk::Array<gdstk::Polygon*>* cpp_result = reinterpret_cast<gdstk::Array<gdstk::Polygon*>*>(result);
+    cpp_cell->get_polygons(apply_repetitions, include_paths, depth, filter, tag, *cpp_result);
+}
+
+void cell_get_flexpaths(const Cell* cell, bool apply_repetitions, int64_t depth, 
+                       bool filter, Tag tag, Array* result) {
+    if (!cell || !result) return;
+    
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    gdstk::Array<gdstk::FlexPath*>* cpp_result = reinterpret_cast<gdstk::Array<gdstk::FlexPath*>*>(result);
+    cpp_cell->get_flexpaths(apply_repetitions, depth, filter, tag, *cpp_result);
+}
+
+void cell_get_robustpaths(const Cell* cell, bool apply_repetitions, int64_t depth, 
+                         bool filter, Tag tag, Array* result) {
+    if (!cell || !result) return;
+    
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    gdstk::Array<gdstk::RobustPath*>* cpp_result = reinterpret_cast<gdstk::Array<gdstk::RobustPath*>*>(result);
+    cpp_cell->get_robustpaths(apply_repetitions, depth, filter, tag, *cpp_result);
+}
+
+void cell_get_labels(const Cell* cell, bool apply_repetitions, int64_t depth, 
+                    bool filter, Tag tag, Array* result) {
+    if (!cell || !result) return;
+    
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
+    gdstk::Array<gdstk::Label*>* cpp_result = reinterpret_cast<gdstk::Array<gdstk::Label*>*>(result);
+    cpp_cell->get_labels(apply_repetitions, depth, filter, tag, *cpp_result);
+}

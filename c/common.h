@@ -40,21 +40,8 @@ typedef enum {
     GDSTK_ZLIB_ERROR
 } ErrorCode;
 
-// Vec2 structure
-typedef struct Vec2 {
-    union {
-        struct {
-            double x, y;
-        };
-        struct {
-            double u, v;
-        };
-        struct {
-            double re, im;
-        };
-        double e[2];
-    };
-} Vec2;
+// Forward declaration for Vec2 (full definition in vec.h)
+typedef struct Vec2 Vec2;
 
 // Generic Array structure
 typedef struct Array {
@@ -63,18 +50,12 @@ typedef struct Array {
     void* items;        // slots (type depends on usage)
 } Array;
 
-// Generic Map structure
-typedef struct Map {
-    void* internal;  // Opaque pointer to implementation
-} Map;
-
-// Generic Set structure
-typedef struct Set {
-    void* internal;  // Opaque pointer to implementation
-} Set;
-
 // Tag type
 typedef uint64_t Tag;
+
+// Forward declarations for main types
+typedef struct Map Map;
+typedef struct Set Set;
 
 // Forward declarations for main types
 typedef struct Cell Cell;

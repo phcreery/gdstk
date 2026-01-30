@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "common.h"
+#include "vec.h"
 
 #ifdef __cplusplus
 extern "C" {

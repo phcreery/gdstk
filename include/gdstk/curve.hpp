@@ -11,9 +11,13 @@ LICENSE file or <http://www.boost.org/LICENSE_1_0.txt>
 #define __STDC_FORMAT_MACROS 1
 #define _USE_MATH_DEFINES
 
-#include <math.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #include "array.hpp"
 #include "utils.hpp"

@@ -2,6 +2,7 @@
 #define GDSTK_C_HEADER_POLYGON
 
 #include "common.h"
+#include "vec.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,8 @@ typedef struct Polygon {
 
 // Polygon functions
 Polygon* polygon_new(const Vec2* points, uint64_t num_points, Tag tag);
+// Compatibility function for old API with separate layer/datatype
+Polygon* polygon_new_compat(const Vec2* points, uint64_t num_points, uint32_t layer, uint32_t datatype);
 void polygon_free(Polygon* polygon);
 void polygon_clear(Polygon* polygon);
 void polygon_print(const Polygon* polygon, bool all);
@@ -60,6 +63,11 @@ void polygon_apply_repetition(Polygon* polygon, Array* result);
 ErrorCode polygon_to_gds(const Polygon* polygon, FILE* out, double scaling);
 ErrorCode polygon_to_oas(const Polygon* polygon, OasisStream* out, OasisState* state);
 ErrorCode polygon_to_svg(const Polygon* polygon, FILE* out, double scaling, uint32_t precision);
+
+// Accessor functions
+uint32_t polygon_layer(const Polygon* polygon);
+uint32_t polygon_datatype(const Polygon* polygon);
+uint64_t polygon_point_count(const Polygon* polygon);
 
 // Factory functions (matches C++ API)
 Polygon* polygon_rectangle(Vec2 corner1, Vec2 corner2, Tag tag);

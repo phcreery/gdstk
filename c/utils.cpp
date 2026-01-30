@@ -1,116 +1,13 @@
+#define _USE_MATH_DEFINES
+
 #include "utils.h"
-#include "../include/gdstk/utils.hpp"
 #include <cmath>
-#include <cstdio>
+#include <cstdlib>
+#include "../include/gdstk/utils.hpp"
+#include "../include/gdstk/allocator.hpp"
 
-// Vec2 utility functions
-Vec2 vec2_new(double x, double y) {
-    Vec2 result = {x, y};
-    return result;
-}
+// Thin wrapper around GDSTK C++ utility functions
 
-Vec2 vec2_add(Vec2 a, Vec2 b) {
-    Vec2 result = {a.x + b.x, a.y + b.y};
-    return result;
-}
-
-Vec2 vec2_subtract(Vec2 a, Vec2 b) {
-    Vec2 result = {a.x - b.x, a.y - b.y};
-    return result;
-}
-
-Vec2 vec2_multiply(Vec2 v, double scalar) {
-    Vec2 result = {v.x * scalar, v.y * scalar};
-    return result;
-}
-
-double vec2_dot(Vec2 a, Vec2 b) {
-    return a.x * b.x + a.y * b.y;
-}
-
-double vec2_cross(Vec2 a, Vec2 b) {
-    return a.x * b.y - a.y * b.x;
-}
-
-double vec2_length(Vec2 v) {
-    return sqrt(v.x * v.x + v.y * v.y);
-}
-
-double vec2_length_squared(Vec2 v) {
-    return v.x * v.x + v.y * v.y;
-}
-
-Vec2 vec2_normalize(Vec2 v) {
-    double len = vec2_length(v);
-    if (len > 0.0) {
-        Vec2 result = {v.x / len, v.y / len};
-        return result;
-    }
-    Vec2 result = {0, 0};
-    return result;
-}
-
-double vec2_distance(Vec2 a, Vec2 b) {
-    return vec2_length(vec2_subtract(a, b));
-}
-
-double vec2_distance_squared(Vec2 a, Vec2 b) {
-    return vec2_length_squared(vec2_subtract(a, b));
-}
-
-bool vec2_equal(Vec2 a, Vec2 b, double tolerance) {
-    return vec2_distance_squared(a, b) <= tolerance * tolerance;
-}
-
-// Array utility functions
-Array* array_new(uint64_t initial_capacity) {
-    gdstk::Array<void*>* cpp_array = new gdstk::Array<void*>();
-    if (initial_capacity > 0) {
-        cpp_array->ensure_slots(initial_capacity);
-    }
-    return reinterpret_cast<Array*>(cpp_array);
-}
-
-void array_free(Array* array) {
-    if (array) {
-        gdstk::Array<void*>* cpp_array = reinterpret_cast<gdstk::Array<void*>*>(array);
-        delete cpp_array;
-    }
-}
-
-void array_clear(Array* array) {
-    if (array) {
-        gdstk::Array<void*>* cpp_array = reinterpret_cast<gdstk::Array<void*>*>(array);
-        cpp_array->count = 0;
-    }
-}
-
-void array_append(Array* array, void* item) {
-    if (array) {
-        gdstk::Array<void*>* cpp_array = reinterpret_cast<gdstk::Array<void*>*>(array);
-        cpp_array->append(item);
-    }
-}
-
-void* array_get(const Array* array, uint64_t index) {
-    if (array) {
-        const gdstk::Array<void*>* cpp_array = reinterpret_cast<const gdstk::Array<void*>*>(array);
-        if (index < cpp_array->count) {
-            return cpp_array->items[index];
-        }
-    }
-    return nullptr;
-}
-
-uint64_t array_size(const Array* array) {
-    if (array) {
-        const gdstk::Array<void*>* cpp_array = reinterpret_cast<const gdstk::Array<void*>*>(array);
-        return cpp_array->count;
-    }
-    return 0;
-}
-
-// Utility functions
 bool approx_equal(double a, double b, double tolerance) {
     return fabs(a - b) <= tolerance;
 }
@@ -119,78 +16,136 @@ bool points_equal(Vec2 a, Vec2 b) {
     return approx_equal(a.x, b.x, 1e-9) && approx_equal(a.y, b.y, 1e-9);
 }
 
-// Basic memory allocation
+// Memory allocation wrappers around GDSTK allocator
 void* gdstk_allocate(uint64_t size) {
-    return malloc(size);
+    return gdstk::allocate(size);
 }
 
-void gdstk_deallocate(void* ptr) {
-    free(ptr);
+void* gdstk_reallocate(void* ptr, uint64_t size) {
+    return gdstk::reallocate(ptr, size);
 }
 
-// Map functions (simplified implementation - just placeholders)
-Map* map_new() {
-    return nullptr; // Simplified - not implementing full map
+void gdstk_free(void* ptr) {
+    gdstk::free_allocation(ptr);
 }
 
-void map_free(Map* map) {
-    (void)map; // Unused
+void* gdstk_allocate_clear(uint64_t size) {
+    return gdstk::allocate_clear(size);
 }
 
-void map_clear(Map* map) {
-    (void)map; // Unused
+// String utility wrapper
+char* copy_string(const char* str, uint64_t* len) {
+    return gdstk::copy_string(str, len);
 }
 
-bool map_has_key(const Map* map, const char* key) {
-    (void)map; (void)key; // Unused
-    return false;
+// Math utility wrappers
+double distance_to_line_sq(Vec2 p, Vec2 p1, Vec2 p2) {
+    gdstk::Vec2 gp = {p.x, p.y};
+    gdstk::Vec2 gp1 = {p1.x, p1.y};
+    gdstk::Vec2 gp2 = {p2.x, p2.y};
+    return gdstk::distance_to_line_sq(gp, gp1, gp2);
 }
 
-void* map_get(const Map* map, const char* key) {
-    (void)map; (void)key; // Unused
-    return nullptr;
+double distance_to_line(Vec2 p, Vec2 p1, Vec2 p2) {
+    gdstk::Vec2 gp = {p.x, p.y};
+    gdstk::Vec2 gp1 = {p1.x, p1.y};
+    gdstk::Vec2 gp2 = {p2.x, p2.y};
+    return gdstk::distance_to_line(gp, gp1, gp2);
 }
 
-void map_set(Map* map, const char* key, void* value) {
-    (void)map; (void)key; (void)value; // Unused
+bool is_multiple_of_pi_over_2(double angle, int64_t* m) {
+    int64_t temp_m;
+    bool result = gdstk::is_multiple_of_pi_over_2(angle, temp_m);
+    if (m) *m = temp_m;
+    return result;
 }
 
-void map_remove(Map* map, const char* key) {
-    (void)map; (void)key; // Unused
+uint64_t arc_num_points(double angle, double radius, double tolerance) {
+    return gdstk::arc_num_points(angle, radius, tolerance);
 }
 
-uint64_t map_size(const Map* map) {
-    (void)map; // Unused
-    return 0;
+double elliptical_angle_transform(double angle, double radius_x, double radius_y) {
+    return gdstk::elliptical_angle_transform(angle, radius_x, radius_y);
 }
 
-// Set functions (simplified implementation - just placeholders)
-Set* set_new() {
-    return nullptr; // Simplified - not implementing full set
+void segments_intersection(Vec2 p0, Vec2 ut0, Vec2 p1, Vec2 ut1, double* u0, double* u1) {
+    gdstk::Vec2 gp0 = {p0.x, p0.y};
+    gdstk::Vec2 gut0 = {ut0.x, ut0.y};
+    gdstk::Vec2 gp1 = {p1.x, p1.y};
+    gdstk::Vec2 gut1 = {ut1.x, ut1.y};
+    
+    double temp_u0, temp_u1;
+    gdstk::segments_intersection(gp0, gut0, gp1, gut1, temp_u0, temp_u1);
+    
+    if (u0) *u0 = temp_u0;
+    if (u1) *u1 = temp_u1;
 }
 
-void set_free(Set* set) {
-    (void)set; // Unused
+// Bezier curve evaluation wrappers
+Vec2 eval_line(double t, Vec2 p0, Vec2 p1) {
+    gdstk::Vec2 gp0 = {p0.x, p0.y};
+    gdstk::Vec2 gp1 = {p1.x, p1.y};
+    gdstk::Vec2 result = gdstk::eval_line(t, gp0, gp1);
+    return {result.x, result.y};
 }
 
-void set_clear(Set* set) {
-    (void)set; // Unused
+Vec2 eval_bezier2(double t, Vec2 p0, Vec2 p1, Vec2 p2) {
+    gdstk::Vec2 gp0 = {p0.x, p0.y};
+    gdstk::Vec2 gp1 = {p1.x, p1.y};
+    gdstk::Vec2 gp2 = {p2.x, p2.y};
+    gdstk::Vec2 result = gdstk::eval_bezier2(t, gp0, gp1, gp2);
+    return {result.x, result.y};
 }
 
-void set_add(Set* set, uint64_t value) {
-    (void)set; (void)value; // Unused
+Vec2 eval_bezier3(double t, Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3) {
+    gdstk::Vec2 gp0 = {p0.x, p0.y};
+    gdstk::Vec2 gp1 = {p1.x, p1.y};
+    gdstk::Vec2 gp2 = {p2.x, p2.y};
+    gdstk::Vec2 gp3 = {p3.x, p3.y};
+    gdstk::Vec2 result = gdstk::eval_bezier3(t, gp0, gp1, gp2, gp3);
+    return {result.x, result.y};
 }
 
-bool set_has(const Set* set, uint64_t value) {
-    (void)set; (void)value; // Unused
-    return false;
+// Endian swap function wrappers
+void big_endian_swap16(uint16_t* buffer, uint64_t n) {
+    gdstk::big_endian_swap16(buffer, n);
 }
 
-void set_remove(Set* set, uint64_t value) {
-    (void)set; (void)value; // Unused
+void big_endian_swap32(uint32_t* buffer, uint64_t n) {
+    gdstk::big_endian_swap32(buffer, n);
 }
 
-uint64_t set_size(const Set* set) {
-    (void)set; // Unused
-    return 0;
+void big_endian_swap64(uint64_t* buffer, uint64_t n) {
+    gdstk::big_endian_swap64(buffer, n);
+}
+
+void little_endian_swap16(uint16_t* buffer, uint64_t n) {
+    gdstk::little_endian_swap16(buffer, n);
+}
+
+void little_endian_swap32(uint32_t* buffer, uint64_t n) {
+    gdstk::little_endian_swap32(buffer, n);
+}
+
+void little_endian_swap64(uint64_t* buffer, uint64_t n) {
+    gdstk::little_endian_swap64(buffer, n);
+}
+
+// Checksum calculation wrapper
+uint32_t checksum32(uint32_t checksum, const uint8_t* bytes, uint64_t count) {
+    return gdstk::checksum32(checksum, bytes, count);
+}
+
+// Hash function wrappers
+uint64_t hash_uint64(uint64_t key) {
+    return gdstk::hash(key);
+}
+
+uint64_t hash_string(const char* key) {
+    return gdstk::hash(key);
+}
+
+// String representation wrapper
+char* double_print(double value, uint32_t precision, char* buffer, uint64_t buffer_size) {
+    return gdstk::double_print(value, precision, buffer, buffer_size);
 }

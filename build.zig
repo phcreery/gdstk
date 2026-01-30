@@ -60,7 +60,17 @@ pub fn build(b: *std.Build) void {
     libgdstk.addCSourceFiles(.{
         .root = b.path(""),
         .files = &gdstk_sources,
-        // .flags = &.{ "" },
+        .flags = &.{
+            "-Wall",
+            "-Wextra",
+            "-Wshadow",
+            "-Wvla",
+            "-Wformat",
+            "-Wno-missing-field-initializers",
+            "-Wno-missing-braces",
+            "-Wno-cast-function-type",
+            "-Wno-unused-parameter",
+        },
     });
 
     libgdstk.root_module.addIncludePath(b.path("include"));

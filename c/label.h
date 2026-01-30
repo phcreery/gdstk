@@ -2,6 +2,7 @@
 #define GDSTK_C_HEADER_LABEL
 
 #include "common.h"
+#include "vec.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +37,8 @@ typedef struct Label {
 
 // Label functions
 Label* label_new(const char* text, Vec2 origin, double rotation, Tag tag);
+// Compatibility function for old API with separate layer/datatype
+Label* label_new_compat(const char* text, Vec2 origin, double rotation, uint32_t layer, uint32_t datatype);
 void label_free(Label* label);
 void label_clear(Label* label);
 void label_print(const Label* label);
@@ -45,6 +48,12 @@ void label_copy_from(Label* label, const Label* source);
 
 // Bounding box function
 void label_bounding_box(const Label* label, Vec2* min, Vec2* max);
+
+// Accessor functions
+const char* label_text(const Label* label);
+Vec2 label_position(const Label* label);
+uint32_t label_layer(const Label* label);
+uint32_t label_texttype(const Label* label);
 
 // Transformation function
 void label_transform(Label* label, double magnification, bool x_reflection, 

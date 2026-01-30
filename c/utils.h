@@ -2,72 +2,55 @@
 #define GDSTK_C_HEADER_UTILS
 
 #include "common.h"
+#include "vec.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Vec2 utility functions
-Vec2 vec2_new(double x, double y);
-Vec2 vec2_add(Vec2 a, Vec2 b);
-Vec2 vec2_subtract(Vec2 a, Vec2 b);
-Vec2 vec2_mul(Vec2 v, double scalar);
-Vec2 vec2_div(Vec2 v, double scalar);
-double vec2_dot(Vec2 a, Vec2 b);
-double vec2_cross(Vec2 a, Vec2 b);
-double vec2_length(Vec2 v);
-double vec2_length_squared(Vec2 v);
-Vec2 vec2_normalize(Vec2 v);
-Vec2 vec2_rotate(Vec2 v, double angle);
-double vec2_angle(Vec2 v);
-double vec2_distance(Vec2 a, Vec2 b);
-bool vec2_equal(Vec2 a, Vec2 b);
+// Utility functions for floating point comparisons
+bool approx_equal(double a, double b, double tolerance);
+bool points_equal(Vec2 a, Vec2 b);
 
-// Array utility functions (for Vec2 arrays)
-Array* array_vec2_new(void);
-void array_vec2_free(Array* array);
-void array_vec2_clear(Array* array);
-void array_vec2_append(Array* array, Vec2 item);
-void array_vec2_insert(Array* array, uint64_t index, Vec2 item);
-void array_vec2_remove(Array* array, uint64_t index);
-Vec2 array_vec2_get(const Array* array, uint64_t index);
-void array_vec2_set(Array* array, uint64_t index, Vec2 item);
-uint64_t array_vec2_size(const Array* array);
-
-// Array utility functions (for pointer arrays)
-Array* array_ptr_new(void);
-void array_ptr_free(Array* array);
-void array_ptr_clear(Array* array);
-void array_ptr_append(Array* array, void* item);
-void array_ptr_insert(Array* array, uint64_t index, void* item);
-void array_ptr_remove(Array* array, uint64_t index);
-void* array_ptr_get(const Array* array, uint64_t index);
-void array_ptr_set(Array* array, uint64_t index, void* item);
-uint64_t array_ptr_size(const Array* array);
-
-// Map utility functions
-Map* map_new(void);
-void map_free(Map* map);
-void map_clear(Map* map);
-bool map_has_key(const Map* map, const char* key);
-void* map_get(const Map* map, const char* key);
-void map_set(Map* map, const char* key, void* value);
-void map_remove(Map* map, const char* key);
-uint64_t map_size(const Map* map);
-
-// Set utility functions
-Set* set_new(void);
-void set_free(Set* set);
-void set_clear(Set* set);
-bool set_has(const Set* set, uint64_t value);
-void set_add(Set* set, uint64_t value);
-void set_remove(Set* set, uint64_t value);
-uint64_t set_size(const Set* set);
-
-// Memory management functions
+// Memory management functions (wrappers around GDSTK allocator)
 void* gdstk_allocate(uint64_t size);
 void* gdstk_reallocate(void* ptr, uint64_t size);
 void gdstk_free(void* ptr);
+void* gdstk_allocate_clear(uint64_t size);
+
+// String utility functions
+char* copy_string(const char* str, uint64_t* len);
+
+// Math utility functions
+double distance_to_line_sq(Vec2 p, Vec2 p1, Vec2 p2);
+double distance_to_line(Vec2 p, Vec2 p1, Vec2 p2);
+bool is_multiple_of_pi_over_2(double angle, int64_t* m);
+uint64_t arc_num_points(double angle, double radius, double tolerance);
+double elliptical_angle_transform(double angle, double radius_x, double radius_y);
+void segments_intersection(Vec2 p0, Vec2 ut0, Vec2 p1, Vec2 ut1, double* u0, double* u1);
+
+// Bezier curve evaluation functions
+Vec2 eval_line(double t, Vec2 p0, Vec2 p1);
+Vec2 eval_bezier2(double t, Vec2 p0, Vec2 p1, Vec2 p2);
+Vec2 eval_bezier3(double t, Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3);
+
+// Endian swap functions (for file I/O)
+void big_endian_swap16(uint16_t* buffer, uint64_t n);
+void big_endian_swap32(uint32_t* buffer, uint64_t n);
+void big_endian_swap64(uint64_t* buffer, uint64_t n);
+void little_endian_swap16(uint16_t* buffer, uint64_t n);
+void little_endian_swap32(uint32_t* buffer, uint64_t n);
+void little_endian_swap64(uint64_t* buffer, uint64_t n);
+
+// Checksum calculation
+uint32_t checksum32(uint32_t checksum, const uint8_t* bytes, uint64_t count);
+
+// Hash function for basic types
+uint64_t hash_uint64(uint64_t key);
+uint64_t hash_string(const char* key);
+
+// String representation of doubles for output
+char* double_print(double value, uint32_t precision, char* buffer, uint64_t buffer_size);
 
 #ifdef __cplusplus
 }

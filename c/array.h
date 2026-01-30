@@ -3,21 +3,13 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Forward declarations
-typedef struct Vec2 Vec2;
-
-// Generic Array structure (already in utils.h but expanded here)
-typedef struct Array {
-    uint64_t capacity;  // allocated capacity
-    uint64_t count;     // number of slots used
-    void* items;        // slots (type depends on usage)
-    size_t item_size;   // size of each item
-} Array;
+// Note: Array structure is defined in common.h
 
 // Generic array functions
 Array* array_new(size_t item_size);

@@ -2,6 +2,7 @@
 #define GDSTK_C_HEADER_REFERENCE
 
 #include "common.h"
+#include "vec.h"
 
 #ifdef __cplusplus
 extern "C" {

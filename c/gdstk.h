@@ -4,6 +4,10 @@
 // Main C bindings header for GDSTK library
 
 #include "common.h"
+#include "vec.h"
+#include "array.h"
+#include "map.h"
+#include "set.h"
 #include "cell.h"
 #include "polygon.h"
 #include "label.h"

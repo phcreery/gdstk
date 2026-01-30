@@ -1,5 +1,6 @@
 #include "label.h"
 #include "../include/gdstk/label.hpp"
+#include "../include/gdstk/utils.hpp"
 #include <cstdlib>
 #include <cstring>
 #include <new>
@@ -59,12 +60,35 @@ void label_print(const Label* label) {
     }
 }
 
+// Compatibility function for old API with separate layer/datatype
+Label* label_new_compat(const char* text, Vec2 origin, double rotation, uint32_t layer, uint32_t datatype) {
+    Tag tag = gdstk::make_tag(layer, datatype);
+    return label_new(text, origin, rotation, tag);
+}
+
+// Accessor functions
 const char* label_text(const Label* label) {
-    if (label) {
-        const gdstk::Label* cpp_label = reinterpret_cast<const gdstk::Label*>(label);
-        return cpp_label->text;
-    }
-    return nullptr;
+    if (!label) return nullptr;
+    gdstk::Label* cpp_label = (gdstk::Label*)label;
+    return cpp_label->text;
+}
+
+Vec2 label_position(const Label* label) {
+    if (!label) return Vec2{0, 0};
+    gdstk::Label* cpp_label = (gdstk::Label*)label;
+    return Vec2{cpp_label->origin.x, cpp_label->origin.y};
+}
+
+uint32_t label_layer(const Label* label) {
+    if (!label) return 0;
+    gdstk::Label* cpp_label = (gdstk::Label*)label;
+    return gdstk::get_layer(cpp_label->tag);
+}
+
+uint32_t label_texttype(const Label* label) {
+    if (!label) return 0;
+    gdstk::Label* cpp_label = (gdstk::Label*)label;
+    return gdstk::get_type(cpp_label->tag);
 }
 
 void label_set_text(Label* label, const char* text) {
@@ -117,22 +141,6 @@ void label_set_rotation(Label* label, double rotation) {
     }
 }
 
-uint32_t label_layer(const Label* label) {
-    if (label) {
-        const gdstk::Label* cpp_label = reinterpret_cast<const gdstk::Label*>(label);
-        return (uint32_t)(cpp_label->tag >> 16);
-    }
-    return 0;
-}
-
-uint32_t label_texttype(const Label* label) {
-    if (label) {
-        const gdstk::Label* cpp_label = reinterpret_cast<const gdstk::Label*>(label);
-        return (uint32_t)(cpp_label->tag & 0xFFFF);
-    }
-    return 0;
-}
-
 void label_set_layer(Label* label, uint32_t layer) {
     if (label) {
         gdstk::Label* cpp_label = reinterpret_cast<gdstk::Label*>(label);
@@ -154,13 +162,4 @@ void label_transform(Label* label, double magnification, bool x_reflection,
         gdstk::Vec2 cpp_origin = {origin.x, origin.y};
         cpp_label->transform(magnification, x_reflection, rotation, cpp_origin);
     }
-}
-
-Vec2 label_position(const Label* label) {
-    Vec2 pos = {0, 0};
-    if (!label) return pos;
-    gdstk::Label* cpp_label = (gdstk::Label*)label;
-    pos.x = cpp_label->origin.x;
-    pos.y = cpp_label->origin.y;
-    return pos;
 }

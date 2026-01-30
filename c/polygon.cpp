@@ -51,22 +51,6 @@ void polygon_print(const Polygon* polygon, bool all) {
     }
 }
 
-uint32_t polygon_layer(const Polygon* polygon) {
-    if (polygon) {
-        const gdstk::Polygon* cpp_polygon = reinterpret_cast<const gdstk::Polygon*>(polygon);
-        return (uint32_t)(cpp_polygon->tag >> 16);
-    }
-    return 0;
-}
-
-uint32_t polygon_datatype(const Polygon* polygon) {
-    if (polygon) {
-        const gdstk::Polygon* cpp_polygon = reinterpret_cast<const gdstk::Polygon*>(polygon);
-        return (uint32_t)(cpp_polygon->tag & 0xFFFF);
-    }
-    return 0;
-}
-
 void polygon_set_layer(Polygon* polygon, uint32_t layer) {
     if (polygon) {
         gdstk::Polygon* cpp_polygon = reinterpret_cast<gdstk::Polygon*>(polygon);
@@ -320,7 +304,26 @@ Polygon* polygon_cross(Vec2 center, double full_size, double arm_width, Tag tag)
     return reinterpret_cast<Polygon*>(cpp_polygon);
 }
 
-size_t polygon_point_count(const Polygon* polygon) {
+// Compatibility function for old API with separate layer/datatype
+Polygon* polygon_new_compat(const Vec2* points, uint64_t num_points, uint32_t layer, uint32_t datatype) {
+    Tag tag = gdstk::make_tag(layer, datatype);
+    return polygon_new(points, num_points, tag);
+}
+
+// Accessor functions
+uint32_t polygon_layer(const Polygon* polygon) {
+    if (!polygon) return 0;
+    gdstk::Polygon* cpp_polygon = (gdstk::Polygon*)polygon;
+    return gdstk::get_layer(cpp_polygon->tag);
+}
+
+uint32_t polygon_datatype(const Polygon* polygon) {
+    if (!polygon) return 0;
+    gdstk::Polygon* cpp_polygon = (gdstk::Polygon*)polygon;
+    return gdstk::get_type(cpp_polygon->tag);
+}
+
+uint64_t polygon_point_count(const Polygon* polygon) {
     if (!polygon) return 0;
     gdstk::Polygon* cpp_polygon = (gdstk::Polygon*)polygon;
     return cpp_polygon->point_array.count;
