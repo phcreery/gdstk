@@ -158,55 +158,79 @@ void scale_and_round_array(const Array<Vec2> points, double scaling,
 
 void big_endian_swap16(uint16_t* buffer, uint64_t n) {
     if (IS_BIG_ENDIAN) return;
+    uint8_t* byte_buffer = (uint8_t*)buffer;
     for (; n > 0; n--) {
-        uint16_t b = *buffer;
-        *buffer++ = (b << 8) | (b >> 8);
+        uint16_t b;
+        memcpy(&b, byte_buffer, sizeof(uint16_t));
+        b = (b << 8) | (b >> 8);
+        memcpy(byte_buffer, &b, sizeof(uint16_t));
+        byte_buffer += sizeof(uint16_t);
     }
 }
 
 void big_endian_swap32(uint32_t* buffer, uint64_t n) {
     if (IS_BIG_ENDIAN) return;
+    uint8_t* byte_buffer = (uint8_t*)buffer;
     for (; n > 0; n--) {
-        uint32_t b = *buffer;
-        *buffer++ = (b << 24) | ((b & 0x0000FF00) << 8) | ((b & 0x00FF0000) >> 8) | (b >> 24);
+        uint32_t b;
+        memcpy(&b, byte_buffer, sizeof(uint32_t));
+        b = (b << 24) | ((b & 0x0000FF00) << 8) | ((b & 0x00FF0000) >> 8) | (b >> 24);
+        memcpy(byte_buffer, &b, sizeof(uint32_t));
+        byte_buffer += sizeof(uint32_t);
     }
 }
 
 void big_endian_swap64(uint64_t* buffer, uint64_t n) {
     if (IS_BIG_ENDIAN) return;
+    uint8_t* byte_buffer = (uint8_t*)buffer;
     for (; n > 0; n--) {
-        uint64_t b = *buffer;
-        *buffer++ = (b << 56) | ((b & 0x000000000000FF00) << 40) |
-                    ((b & 0x0000000000FF0000) << 24) | ((b & 0x00000000FF000000) << 8) |
-                    ((b & 0x000000FF00000000) >> 8) | ((b & 0x0000FF0000000000) >> 24) |
-                    ((b & 0x00FF000000000000) >> 40) | (b >> 56);
+        uint64_t b;
+        memcpy(&b, byte_buffer, sizeof(uint64_t));
+        b = (b << 56) | ((b & 0x000000000000FF00) << 40) |
+            ((b & 0x0000000000FF0000) << 24) | ((b & 0x00000000FF000000) << 8) |
+            ((b & 0x000000FF00000000) >> 8) | ((b & 0x0000FF0000000000) >> 24) |
+            ((b & 0x00FF000000000000) >> 40) | (b >> 56);
+        memcpy(byte_buffer, &b, sizeof(uint64_t));
+        byte_buffer += sizeof(uint64_t);
     }
 }
 
 void little_endian_swap16(uint16_t* buffer, uint64_t n) {
     if (!IS_BIG_ENDIAN) return;
+    uint8_t* byte_buffer = (uint8_t*)buffer;
     for (; n > 0; n--) {
-        uint16_t b = *buffer;
-        *buffer++ = (b << 8) | (b >> 8);
+        uint16_t b;
+        memcpy(&b, byte_buffer, sizeof(uint16_t));
+        b = (b << 8) | (b >> 8);
+        memcpy(byte_buffer, &b, sizeof(uint16_t));
+        byte_buffer += sizeof(uint16_t);
     }
 }
 
 void little_endian_swap32(uint32_t* buffer, uint64_t n) {
     if (!IS_BIG_ENDIAN) return;
+    uint8_t* byte_buffer = (uint8_t*)buffer;
     for (; n > 0; n--) {
-        uint32_t b = *buffer;
-        *buffer++ = (b << 24) | ((b & 0x0000FF00) << 8) | ((b & 0x00FF0000) >> 8) | (b >> 24);
+        uint32_t b;
+        memcpy(&b, byte_buffer, sizeof(uint32_t));
+        b = (b << 24) | ((b & 0x0000FF00) << 8) | ((b & 0x00FF0000) >> 8) | (b >> 24);
+        memcpy(byte_buffer, &b, sizeof(uint32_t));
+        byte_buffer += sizeof(uint32_t);
     }
 }
 
 void little_endian_swap64(uint64_t* buffer, uint64_t n) {
     if (!IS_BIG_ENDIAN) return;
+    uint8_t* byte_buffer = (uint8_t*)buffer;
     for (; n > 0; n--) {
-        uint64_t b = *buffer;
-        *buffer++ = (b << 56) | ((b & 0x000000000000FF00) << 40) |
-                    ((b & 0x0000000000FF0000) << 24) | ((b & 0x00000000FF000000) << 8) |
-                    ((b & 0x000000FF00000000) >> 8) | ((b & 0x0000FF0000000000) >> 24) |
-                    ((b & 0x00FF000000000000) >> 40) | (b >> 56);
+        uint64_t b;
+        memcpy(&b, byte_buffer, sizeof(uint64_t));
+        b = (b << 56) | ((b & 0x000000000000FF00) << 40) |
+            ((b & 0x0000000000FF0000) << 24) | ((b & 0x00000000FF000000) << 8) |
+            ((b & 0x000000FF00000000) >> 8) | ((b & 0x0000FF0000000000) >> 24) |
+            ((b & 0x00FF000000000000) >> 40) | (b >> 56);
+        memcpy(byte_buffer, &b, sizeof(uint64_t));
+        byte_buffer += sizeof(uint64_t);
     }
 }
 

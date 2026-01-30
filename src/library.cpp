@@ -929,7 +929,14 @@ Library read_gds(const char* filename, double unit, double tolerance, const Set<
     Library library = {};
     // One extra char in case we need a 0-terminated string with max count (should never happen, but
     // it doesn't hurt to be prepared).
-    uint8_t buffer[65537];
+    // Ensure buffer is large enough and properly aligned
+    alignas(8) uint8_t aligned_buffer[65537 + 8];
+    // Ensure buffer + 4 is 8-byte aligned by finding the right offset
+    uint8_t* buffer = aligned_buffer;
+    if (((uintptr_t)(buffer + 4)) % 8 != 0) {
+        buffer = aligned_buffer + (8 - (((uintptr_t)(buffer + 4)) % 8));
+    }
+    
     uint16_t* udata16 = (uint16_t*)(buffer + 4);
     int16_t* data16 = (int16_t*)(buffer + 4);
     int32_t* data32 = (int32_t*)(buffer + 4);
@@ -955,7 +962,7 @@ Library read_gds(const char* filename, double unit, double tolerance, const Set<
     }
 
     while (true) {
-        uint64_t record_length = COUNT(buffer);
+        uint64_t record_length = 65537;  // Use explicit buffer size instead of COUNT(buffer)
         ErrorCode err = gdsii_read_record(in, buffer, record_length);
         if (err != ErrorCode::NoError) {
             if (error_code) *error_code = err;
@@ -2580,7 +2587,12 @@ CLEANUP:
 }
 
 ErrorCode gds_units(const char* filename, double& unit, double& precision) {
-    uint8_t buffer[65537];
+    alignas(8) uint8_t aligned_buffer[65537 + 8];
+    // Ensure buffer + 4 is 8-byte aligned
+    uint8_t* buffer = aligned_buffer;
+    if (((uintptr_t)(buffer + 4)) % 8 != 0) {
+        buffer = aligned_buffer + (8 - (((uintptr_t)(buffer + 4)) % 8));
+    }
     uint64_t* data64 = (uint64_t*)(buffer + 4);
     FILE* in = fopen(filename, "rb");
     if (in == NULL) {
@@ -2589,7 +2601,7 @@ ErrorCode gds_units(const char* filename, double& unit, double& precision) {
     }
 
     while (true) {
-        uint64_t record_length = COUNT(buffer);
+        uint64_t record_length = 65537;  // Use explicit buffer size
         ErrorCode error_code = gdsii_read_record(in, buffer, record_length);
         if (error_code != ErrorCode::NoError) {
             fclose(in);
@@ -2696,7 +2708,12 @@ tm gds_timestamp(const char* filename, const tm* new_timestamp, ErrorCode* error
 ErrorCode gds_info(const char* filename, LibraryInfo& info) {
     // One extra char in case we need a 0-terminated string with max count (should never happen, but
     // it doesn't hurt to be prepared).
-    uint8_t buffer[65537];
+    alignas(8) uint8_t aligned_buffer[65537 + 8];
+    // Ensure buffer + 4 is 8-byte aligned
+    uint8_t* buffer = aligned_buffer;
+    if (((uintptr_t)(buffer + 4)) % 8 != 0) {
+        buffer = aligned_buffer + (8 - (((uintptr_t)(buffer + 4)) % 8));
+    }
     uint16_t* data16 = (uint16_t*)(buffer + 4);
     uint32_t* data32 = (uint32_t*)(buffer + 4);
     uint64_t* data64 = (uint64_t*)(buffer + 4);
@@ -2712,7 +2729,7 @@ ErrorCode gds_info(const char* filename, LibraryInfo& info) {
     uint32_t layer = 0;
     Set<Tag>* next_set = NULL;
     while (true) {
-        uint64_t record_length = COUNT(buffer);
+        uint64_t record_length = 65537;  // Use explicit buffer size
         ErrorCode err = gdsii_read_record(in, buffer, record_length);
         if (err != ErrorCode::NoError) {
             fclose(in);
