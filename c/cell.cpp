@@ -142,14 +142,17 @@ RobustPath* cell_get_robustpath(const Cell* cell, size_t index) {
 Cell* cell_copy(const Cell* cell, const char* new_name, bool deep_copy) {
     if (!cell || !new_name) return NULL;
     
-    Cell* new_cell = (Cell*)malloc(sizeof(Cell));
-    memset(new_cell, 0, sizeof(Cell));
+    // Allocate and construct C++ object properly
+    gdstk::Cell* cpp_new_cell = static_cast<gdstk::Cell*>(malloc(sizeof(gdstk::Cell)));
+    if (!cpp_new_cell) return NULL;
     
-    gdstk::Cell* cpp_cell = (gdstk::Cell*)cell;
-    gdstk::Cell* cpp_new_cell = (gdstk::Cell*)new_cell;
+    // Initialize the C++ object in-place
+    new(cpp_new_cell) gdstk::Cell();
+    
+    const gdstk::Cell* cpp_cell = reinterpret_cast<const gdstk::Cell*>(cell);
     cpp_new_cell->copy_from(*cpp_cell, new_name, deep_copy);
     
-    return new_cell;
+    return reinterpret_cast<Cell*>(cpp_new_cell);
 }
 
 // Element removal functions

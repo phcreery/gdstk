@@ -225,8 +225,14 @@ int test_bounding_box() {
     // Use c2 which has direct polygons instead of c3 which only has references
     cell_bounding_box(tree->c2, &bbox_min, &bbox_max);
     
-    // c2 has one triangle with points (2,0), (2,1), (1,0)
-    TEST_ASSERT(points_equal(bbox_min, (Vec2){1, 0}), "Min point should be (1, 0)");
+    // Debug: Print actual values
+    printf("DEBUG: bbox_min = (%.6f, %.6f), bbox_max = (%.6f, %.6f)\n", 
+           bbox_min.x, bbox_min.y, bbox_max.x, bbox_max.y);
+    
+    // c2 has polygon p2 with points (2,0), (2,1), (1,0) AND reference to c1 
+    // which has p1 with points (0,0), (0,1), (1,0)
+    // Combined bounding box should be min=(0,0), max=(2,1)
+    TEST_ASSERT(points_equal(bbox_min, (Vec2){0, 0}), "Min point should be (0, 0)");
     TEST_ASSERT(points_equal(bbox_max, (Vec2){2, 1}), "Max point should be (2, 1)");
     
     free_test_tree(tree);
