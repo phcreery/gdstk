@@ -12,12 +12,16 @@ const gdstk_sources = [_][]const u8{
     "src/oasis.cpp",
     "src/polygon.cpp",
     "src/property.cpp",
+    "src/raithdata.cpp",
     "src/rawcell.cpp",
     "src/reference.cpp",
     "src/repetition.cpp",
     "src/robustpath.cpp",
     "src/style.cpp",
     "src/utils.cpp",
+
+    // External
+    "external/clipper/clipper.cpp",
 
     // GDSTK c wrappers
     "c/cell.cpp",
@@ -37,6 +41,10 @@ pub fn build(b: *std.Build) void {
 
     const zlib_dep = b.dependency("zlib", opts);
     const qhull_dep = b.dependency("qhull", opts);
+
+    // =================================
+    // libgdstk
+    // =================================
 
     const libgdstk = b.addLibrary(.{
         .name = "gdstk",
@@ -58,6 +66,7 @@ pub fn build(b: *std.Build) void {
     libgdstk.root_module.addIncludePath(b.path("include"));
     libgdstk.root_module.addIncludePath(b.path("c"));
     libgdstk.root_module.addIncludePath(b.path("external"));
+    libgdstk.root_module.addIncludePath(b.path("external/clipper"));
 
     libgdstk.root_module.linkSystemLibrary("m", .{});
     libgdstk.root_module.linkLibrary(qhull_dep.artifact("qhull"));

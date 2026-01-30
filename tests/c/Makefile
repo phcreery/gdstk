@@ -29,12 +29,15 @@ cell_test: cell_test.c $(TEST_FRAMEWORK_OBJS)
 curve_test: curve_test.c $(TEST_FRAMEWORK_OBJS)
 	$(CC) $(CFLAGS) $< $(TEST_FRAMEWORK_OBJS) $(LIBS) -o $@
 
+test_library_api: test_library_api.c $(TEST_FRAMEWORK_OBJS)
+	$(CC) $(CFLAGS) $< $(TEST_FRAMEWORK_OBJS) $(LIBS) -o $@
+
 # Quick test
 test: basic_test
 	./basic_test
 
 # Clean
 clean:
-	rm -f *.o *.exe basic_test cell_test curve_test
+	rm -f *.o *.exe basic_test cell_test curve_test test_library_api
 
 .PHONY: all test clean

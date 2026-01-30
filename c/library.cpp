@@ -151,57 +151,135 @@ ErrorCode library_write_gds(const Library* library, const char* filename,
     return GDSTK_INVALID_FILE;
 }
 
-ErrorCode library_read_gds(const char* filename, double unit, double precision, 
-                          Library* library) {
-    if (filename && library) {
-        gdstk::ErrorCode error_code;
-        gdstk::Library cpp_library = gdstk::read_gds(filename, unit, precision, nullptr, &error_code);
-        
-        if (error_code == gdstk::ErrorCode::NoError) {
-            // Copy the loaded library into the provided library
-            gdstk::Library* cpp_library_ptr = reinterpret_cast<gdstk::Library*>(library);
-            cpp_library_ptr->copy_from(cpp_library, true);
-        }
-        
-        return convert_error_code(error_code);
-    }
-    return GDSTK_INVALID_FILE;
-}
-
 // OASIS I/O functions  
 ErrorCode library_write_oas(const Library* library, const char* filename, 
-                           double compression_level, bool detect_rectangles,
-                           bool detect_trapezoids, uint64_t circle_tolerance, 
-                           double standard_properties, double validation, 
-                           bool check_duplicates) {
+                           double circle_tolerance, uint8_t deflate_level,
+                           uint16_t config_flags) {
     if (library && filename) {
         gdstk::Library* cpp_library = const_cast<gdstk::Library*>(reinterpret_cast<const gdstk::Library*>(library));
-        
-        // Build config flags
-        uint16_t config_flags = 0;
-        if (detect_rectangles) config_flags |= GDSTK_OASIS_CONFIG_DETECT_RECTANGLES;
-        if (detect_trapezoids) config_flags |= GDSTK_OASIS_CONFIG_DETECT_TRAPEZOIDS;
-        if (check_duplicates) config_flags |= GDSTK_OASIS_CONFIG_CHECK_DUPLICATES;
-        
         gdstk::ErrorCode result = cpp_library->write_oas(filename, circle_tolerance, 
-                                                         (uint8_t)compression_level, config_flags);
+                                                         deflate_level, config_flags);
         return convert_error_code(result);
     }
     return GDSTK_INVALID_FILE;
 }
 
-// SVG output functions
+// SVG output functions - Note: Not directly supported in GDSTK C++ for entire library
 ErrorCode library_write_svg(const Library* library, const char* filename, 
                            double scaling, uint32_t precision, void* shape_style,
                            void* label_style, const char* background, double pad, 
                            bool pad_as_percentage) {
-    if (library && filename) {
-        // Note: SVG output for entire library is not directly supported in GDSTK C++
-        // This would need to iterate over cells and write them individually
-        // For now, return an error indicating unsupported operation
-        return GDSTK_UNSUPPORTED_RECORD;
+    // SVG output for entire library is not directly supported in GDSTK C++
+    // This would need to iterate over cells and write them individually
+    // For now, return an error indicating unsupported operation
+    return GDSTK_UNSUPPORTED_RECORD;
+}
+
+// Standalone I/O functions (match C++ API)
+Library* read_gds(const char* filename, double unit, double tolerance, 
+                  const Set* shape_tags, ErrorCode* error_code) {
+    if (!filename) {
+        if (error_code) *error_code = GDSTK_INVALID_FILE;
+        return nullptr;
     }
-    return GDSTK_INVALID_FILE;
+    
+    gdstk::ErrorCode cpp_error_code;
+    const gdstk::Set<gdstk::Tag>* cpp_shape_tags = nullptr;
+    
+    if (shape_tags) {
+        cpp_shape_tags = reinterpret_cast<const gdstk::Set<gdstk::Tag>*>(shape_tags);
+    }
+    
+    gdstk::Library cpp_library = gdstk::read_gds(filename, unit, tolerance, cpp_shape_tags, &cpp_error_code);
+    
+    if (error_code) {
+        *error_code = convert_error_code(cpp_error_code);
+    }
+    
+    if (cpp_error_code != gdstk::ErrorCode::NoError) {
+        return nullptr;
+    }
+    
+    // Allocate and copy the library
+    gdstk::Library* result = new gdstk::Library();
+    result->copy_from(cpp_library, true);
+    return reinterpret_cast<Library*>(result);
+}
+
+Library* read_oas(const char* filename, double unit, double tolerance, 
+                  ErrorCode* error_code) {
+    if (!filename) {
+        if (error_code) *error_code = GDSTK_INVALID_FILE;
+        return nullptr;
+    }
+    
+    gdstk::ErrorCode cpp_error_code;
+    gdstk::Library cpp_library = gdstk::read_oas(filename, unit, tolerance, &cpp_error_code);
+    
+    if (error_code) {
+        *error_code = convert_error_code(cpp_error_code);
+    }
+    
+    if (cpp_error_code != gdstk::ErrorCode::NoError) {
+        return nullptr;
+    }
+    
+    // Allocate and copy the library
+    gdstk::Library* result = new gdstk::Library();
+    result->copy_from(cpp_library, true);
+    return reinterpret_cast<Library*>(result);
+}
+
+// Utility functions for file inspection
+ErrorCode gds_units(const char* filename, double* unit, double* precision) {
+    if (!filename || !unit || !precision) {
+        return GDSTK_INVALID_FILE;
+    }
+    
+    gdstk::ErrorCode result = gdstk::gds_units(filename, *unit, *precision);
+    return convert_error_code(result);
+}
+
+struct tm gds_timestamp(const char* filename, const struct tm* new_timestamp, ErrorCode* error_code) {
+    gdstk::ErrorCode cpp_error_code;
+    struct tm result = gdstk::gds_timestamp(filename, new_timestamp, &cpp_error_code);
+    
+    if (error_code) {
+        *error_code = convert_error_code(cpp_error_code);
+    }
+    
+    return result;
+}
+
+ErrorCode gds_info(const char* filename, void* info) {
+    // LibraryInfo is not exposed in C wrapper, so this is a placeholder
+    // In a full implementation, you'd need to create a C-compatible LibraryInfo struct
+    return GDSTK_UNSUPPORTED_RECORD;
+}
+
+ErrorCode oas_precision(const char* filename, double* precision) {
+    if (!filename || !precision) {
+        return GDSTK_INVALID_FILE;
+    }
+    
+    gdstk::ErrorCode result = gdstk::oas_precision(filename, *precision);
+    return convert_error_code(result);
+}
+
+bool oas_validate(const char* filename, uint32_t* signature, ErrorCode* error_code) {
+    if (!filename) {
+        if (error_code) *error_code = GDSTK_INVALID_FILE;
+        return false;
+    }
+    
+    gdstk::ErrorCode cpp_error_code;
+    bool result = gdstk::oas_validate(filename, signature, &cpp_error_code);
+    
+    if (error_code) {
+        *error_code = convert_error_code(cpp_error_code);
+    }
+    
+    return result;
 }
 
 } // extern "C"

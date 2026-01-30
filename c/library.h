@@ -53,21 +53,30 @@ void library_replace_cell(Library* library, Cell* old_cell, Cell* new_cell);
 // GDSII I/O functions
 ErrorCode library_write_gds(const Library* library, const char* filename, 
                            uint64_t max_points, struct tm* timestamp);
-ErrorCode library_read_gds(const char* filename, double unit, double precision, 
-                          Library* library);
 
 // OASIS I/O functions  
 ErrorCode library_write_oas(const Library* library, const char* filename, 
-                           double compression_level, bool detect_rectangles,
-                           bool detect_trapezoids, uint64_t circle_tolerance, 
-                           double standard_properties, double validation, 
-                           bool check_duplicates);
+                           double circle_tolerance, uint8_t deflate_level,
+                           uint16_t config_flags);
 
 // SVG output functions
 ErrorCode library_write_svg(const Library* library, const char* filename, 
                            double scaling, uint32_t precision, void* shape_style,
                            void* label_style, const char* background, double pad, 
                            bool pad_as_percentage);
+
+// Standalone I/O functions (match C++ API)
+Library* read_gds(const char* filename, double unit, double tolerance, 
+                  const Set* shape_tags, ErrorCode* error_code);
+Library* read_oas(const char* filename, double unit, double tolerance, 
+                  ErrorCode* error_code);
+
+// Utility functions for file inspection
+ErrorCode gds_units(const char* filename, double* unit, double* precision);
+struct tm gds_timestamp(const char* filename, const struct tm* new_timestamp, ErrorCode* error_code);
+ErrorCode gds_info(const char* filename, void* info);  // LibraryInfo not exposed in C wrapper
+ErrorCode oas_precision(const char* filename, double* precision);
+bool oas_validate(const char* filename, uint32_t* signature, ErrorCode* error_code);
 
 #ifdef __cplusplus
 }
