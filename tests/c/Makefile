@@ -5,7 +5,7 @@
 # Compiler settings
 CC = gcc
 CXX = g++
-CFLAGS = -std=c11 -Wall -Wextra -O2 -I../../c -I../../include
+CFLAGS = -std=c11 -Wall -Wextra -Wshadow -Wvla -Wformat -Wno-missing-field-initializers -Wno-missing-braces -Wno-cast-function-type -Wno-unused-parameter -O2 -I../../c -I../../include
 CXXFLAGS = -std=c++11 -Wall -Wextra -Wshadow -Wvla -Wformat -Wno-missing-field-initializers -Wno-missing-braces -Wno-cast-function-type -Wno-unused-parameter -O2 -I../../include -I../../c
 LIBS = -L../../build/lib -L../../external/lib -lgdstk_c -lclipper -lqhullstatic_r -lz -lstdc++ -lm
 

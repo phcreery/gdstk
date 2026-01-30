@@ -1,5 +1,17 @@
 const std = @import("std");
 
+const CXFLAGS = [_][]const u8{
+    "-Wall",
+    "-Wextra",
+    "-Wshadow",
+    "-Wvla",
+    "-Wformat",
+    "-Wno-missing-field-initializers",
+    "-Wno-missing-braces",
+    "-Wno-cast-function-type",
+    "-Wno-unused-parameter",
+};
+
 const gdstk_sources = [_][]const u8{
     // GDSTK
     "src/cell.cpp",
@@ -24,13 +36,17 @@ const gdstk_sources = [_][]const u8{
     "external/clipper/clipper.cpp",
 
     // GDSTK c wrappers
+    "c/array.cpp",
     "c/cell.cpp",
     "c/curve.cpp",
     "c/label.cpp",
     "c/library.cpp",
+    "c/map.cpp",
     "c/polygon.cpp",
     "c/reference.cpp",
+    "c/set.cpp",
     "c/utils.cpp",
+    "c/vec.cpp",
 };
 
 pub fn build(b: *std.Build) void {
@@ -60,17 +76,7 @@ pub fn build(b: *std.Build) void {
     libgdstk.addCSourceFiles(.{
         .root = b.path(""),
         .files = &gdstk_sources,
-        .flags = &.{
-            "-Wall",
-            "-Wextra",
-            "-Wshadow",
-            "-Wvla",
-            "-Wformat",
-            "-Wno-missing-field-initializers",
-            "-Wno-missing-braces",
-            "-Wno-cast-function-type",
-            "-Wno-unused-parameter",
-        },
+        .flags = &CXFLAGS,
     });
 
     libgdstk.root_module.addIncludePath(b.path("include"));

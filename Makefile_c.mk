@@ -22,7 +22,7 @@ INCLUDES = -I$(INCLUDE_DIR) -I$(C_WRAPPER_DIR) -I$(EXTERNAL_DIR)/include -I$(EXT
 
 # Compiler flags
 CXXFLAGS = -std=c++11 -Wall -Wextra -Wshadow -Wvla -Wformat -Wno-missing-field-initializers -Wno-missing-braces -Wno-cast-function-type -Wno-unused-parameter -O2 -fPIC $(INCLUDES)
-CFLAGS = -std=c99 -Wall -Wextra -O2 -fPIC $(INCLUDES)
+CFLAGS = -std=c99 -Wall -Wextra -Wshadow -Wvla -Wformat -Wno-missing-field-initializers -Wno-missing-braces -Wno-cast-function-type -Wno-unused-parameter -O2 -fPIC $(INCLUDES)
 
 # GDSTK source files
 GDSTK_SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
