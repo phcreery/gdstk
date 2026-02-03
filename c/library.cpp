@@ -17,16 +17,28 @@ LICENSE file or <http://www.boost.org/LICENSE_1_0.txt>
 
 extern "C" {
 
-// Forward declaration of error conversion function (defined in cell.cpp)
-ErrorCode convert_error_code(gdstk::ErrorCode cpp_error);
-
-// Implementation of error code conversion
-ErrorCode convert_error_code(gdstk::ErrorCode cpp_error) {
+// Error code conversion from C++ to C
+static ErrorCode convert_error_code(gdstk::ErrorCode cpp_error) {
     switch (cpp_error) {
         case gdstk::ErrorCode::NoError: return GDSTK_NO_ERROR;
-        case gdstk::ErrorCode::InsufficientMemory: return GDSTK_INSUFFICIENT_MEMORY;
-        case gdstk::ErrorCode::InvalidFile: return GDSTK_INVALID_FILE;
+        // Warnings
+        case gdstk::ErrorCode::BooleanError: return GDSTK_BOOLEAN_ERROR;
+        case gdstk::ErrorCode::EmptyPath: return GDSTK_EMPTY_PATH;
+        case gdstk::ErrorCode::IntersectionNotFound: return GDSTK_INTERSECTION_NOT_FOUND;
         case gdstk::ErrorCode::MissingReference: return GDSTK_MISSING_REFERENCE;
+        case gdstk::ErrorCode::UnsupportedRecord: return GDSTK_UNSUPPORTED_RECORD;
+        case gdstk::ErrorCode::UnofficialSpecification: return GDSTK_UNOFFICIAL_SPECIFICATION;
+        case gdstk::ErrorCode::InvalidRepetition: return GDSTK_INVALID_REPETITION;
+        case gdstk::ErrorCode::Overflow: return GDSTK_OVERFLOW;
+        // Errors
+        case gdstk::ErrorCode::ChecksumError: return GDSTK_CHECKSUM_ERROR;
+        case gdstk::ErrorCode::OutputFileOpenError: return GDSTK_OUTPUT_FILE_OPEN_ERROR;
+        case gdstk::ErrorCode::InputFileOpenError: return GDSTK_INPUT_FILE_OPEN_ERROR;
+        case gdstk::ErrorCode::InputFileError: return GDSTK_INPUT_FILE_ERROR;
+        case gdstk::ErrorCode::FileError: return GDSTK_FILE_ERROR;
+        case gdstk::ErrorCode::InvalidFile: return GDSTK_INVALID_FILE;
+        case gdstk::ErrorCode::InsufficientMemory: return GDSTK_INSUFFICIENT_MEMORY;
+        case gdstk::ErrorCode::ZlibError: return GDSTK_ZLIB_ERROR;
         default: return GDSTK_INVALID_FILE;
     }
 }
