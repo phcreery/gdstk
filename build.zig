@@ -84,7 +84,9 @@ pub fn build(b: *std.Build) void {
     libgdstk.root_module.addIncludePath(b.path("external"));
     libgdstk.root_module.addIncludePath(b.path("external/clipper"));
 
-    libgdstk.root_module.linkSystemLibrary("m", .{});
+    libgdstk.root_module.linkSystemLibrary("m", .{
+        .preferred_link_mode = .static,
+    });
     libgdstk.root_module.linkLibrary(qhull_dep.artifact("qhull"));
     libgdstk.root_module.linkLibrary(zlib_dep.artifact("z"));
 
