@@ -14,16 +14,9 @@ typedef struct Cell Cell;
 typedef struct RawCell RawCell;
 typedef struct Property Property;
 
-// Library structure
-typedef struct Library {
-    char* name;
-    double unit;
-    double precision;
-    Array* cell_array;    // Array of Cell*
-    Array* rawcell_array; // Array of RawCell*
-    Property* properties;
-    void* owner;  // For Python interface
-} Library;
+// Opaque Library structure - users should not access internal fields directly
+// The actual implementation is a C++ gdstk::Library object
+typedef struct Library Library;
 
 // Library functions
 Library* library_new(const char* name, double unit, double precision);
@@ -49,6 +42,15 @@ RawCell* library_get_rawcell(const Library* library, const char* name);
 void library_rename_cell(Library* library, const char* old_name, const char* new_name);
 void library_rename_cell_by_ref(Library* library, Cell* cell, const char* new_name);
 void library_replace_cell(Library* library, Cell* old_cell, Cell* new_cell);
+
+// Library property getters - safe access to internal data
+const char* library_name(const Library* library);
+double library_unit(const Library* library);
+double library_precision(const Library* library);
+Array* library_cell_array(const Library* library);
+Array* library_rawcell_array(const Library* library);
+uint64_t library_cell_count(const Library* library);
+uint64_t library_rawcell_count(const Library* library);
 
 // GDSII I/O functions
 ErrorCode library_write_gds(const Library* library, const char* filename, 

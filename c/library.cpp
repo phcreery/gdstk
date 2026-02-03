@@ -152,6 +152,65 @@ void library_replace_cell(Library* library, Cell* old_cell, Cell* new_cell) {
     }
 }
 
+// Library property getters - safe access to internal data
+const char* library_name(const Library* library) {
+    if (library) {
+        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        return cpp_library->name;
+    }
+    return nullptr;
+}
+
+double library_unit(const Library* library) {
+    if (library) {
+        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        return cpp_library->unit;
+    }
+    return 0.0;
+}
+
+double library_precision(const Library* library) {
+    if (library) {
+        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        return cpp_library->precision;
+    }
+    return 0.0;
+}
+
+Array* library_cell_array(const Library* library) {
+    if (library) {
+        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        // Return pointer to the embedded C++ Array object
+        return reinterpret_cast<Array*>(const_cast<gdstk::Array<gdstk::Cell*>*>(&cpp_library->cell_array));
+    }
+    return nullptr;
+}
+
+Array* library_rawcell_array(const Library* library) {
+    if (library) {
+        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        // Return pointer to the embedded C++ Array object
+        return reinterpret_cast<Array*>(const_cast<gdstk::Array<gdstk::RawCell*>*>(&cpp_library->rawcell_array));
+    }
+    return nullptr;
+}
+
+uint64_t library_cell_count(const Library* library) {
+    if (library) {
+        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        return cpp_library->cell_array.count;
+    }
+    return 0;
+}
+
+uint64_t library_rawcell_count(const Library* library) {
+    if (library) {
+        const gdstk::Library* cpp_library = reinterpret_cast<const gdstk::Library*>(library);
+        return cpp_library->rawcell_array.count;
+    }
+    return 0;
+}
+
 // GDSII I/O functions
 ErrorCode library_write_gds(const Library* library, const char* filename, 
                            uint64_t max_points, struct tm* timestamp) {
